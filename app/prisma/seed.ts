@@ -9,18 +9,35 @@ async function main() {
       name: "First Step",
       description: "Solved your first level.",
       rarity: "COMMON" as const,
+      iconUrl: "🐣",
     },
     {
       slug: "ten-unlocks",
       name: "Digger",
       description: "Solved 10 levels across any rabbit holes.",
       rarity: "RARE" as const,
+      iconUrl: "⛏️",
     },
     {
       slug: "fifty-unlocks",
       name: "Deep Diver",
       description: "Solved 50 levels. You are relentless.",
       rarity: "LEGENDARY" as const,
+      iconUrl: "🌀",
+    },
+    {
+      slug: "first-hole",
+      name: "Hole Digger",
+      description: "Created your first rabbit hole.",
+      rarity: "COMMON" as const,
+      iconUrl: "🕳️",
+    },
+    {
+      slug: "rabbit-master",
+      name: "Rabbit Master",
+      description: "Reached the highest rank.",
+      rarity: "LEGENDARY" as const,
+      iconUrl: "👑",
     },
   ];
 
@@ -30,10 +47,10 @@ async function main() {
       update: {},
       create: badge,
     });
-    console.log(`✓ Badge: ${badge.name}`);
+    console.log(`✓ Badge: ${badge.iconUrl} ${badge.name}`);
   }
 
-  console.log("Seed complete.");
+  console.log("\nSeed complete.");
 }
 
 main()

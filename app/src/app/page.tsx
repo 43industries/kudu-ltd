@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import Link from "next/link";
 
 type UserRank = "LURKER" | "CURIOUS" | "DIGGER" | "TRUTH_SEEKER" | "DEEP_DIVER" | "RABBIT_MASTER";
@@ -21,24 +22,62 @@ const RANK_COLORS: Record<UserRank, string> = {
   RABBIT_MASTER: "text-red-400",
 };
 
+interface Props {
+  searchParams: Promise<{ feed?: string; tag?: string }>;
+}
+
 export const revalidate = 60;
 
-export default async function FeedPage() {
-  const threads = await prisma.rabbitHoleThread.findMany({
-    where: { isSecret: false, isActive: true },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-    include: {
-      author: { select: { username: true, displayName: true, avatarUrl: true, rank: true } },
-      tags: { select: { tag: true } },
-      _count: { select: { levels: true } },
-    },
-  });
+export default async function FeedPage({ searchParams }: Props) {
+  const { feed, tag } = await searchParams;
+  const session = await auth();
+  const isFollowingFeed = feed === "following" && !!session?.user?.id;
+
+  let threads;
+
+  if (isFollowingFeed && session?.user?.id) {
+    // Get threads from people the current user follows
+    const following = await prisma.follow.findMany({
+      where: { followerId: session.user.id },
+      select: { followingId: true },
+    });
+    const followingIds = following.map((f) => f.followingId);
+
+    threads = await prisma.rabbitHoleThread.findMany({
+      where: {
+        isSecret: false,
+        isActive: true,
+        authorId: { in: followingIds },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: {
+        author: { select: { username: true, displayName: true, avatarUrl: true, rank: true } },
+        tags: { select: { tag: true } },
+        _count: { select: { levels: true } },
+      },
+    });
+  } else {
+    threads = await prisma.rabbitHoleThread.findMany({
+      where: {
+        isSecret: false,
+        isActive: true,
+        ...(tag ? { tags: { some: { tag } } } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: {
+        author: { select: { username: true, displayName: true, avatarUrl: true, rank: true } },
+        tags: { select: { tag: true } },
+        _count: { select: { levels: true } },
+      },
+    });
+  }
 
   return (
     <div>
       {/* Hero */}
-      <div className="text-center py-16 mb-12">
+      <div className="text-center py-16 mb-8">
         <div className="text-6xl mb-4">🐇</div>
         <h1 className="text-4xl font-bold tracking-tight text-zinc-100 mb-3">
           Go <span className="text-purple-400">deeper</span>.
@@ -54,9 +93,48 @@ export default async function FeedPage() {
         </Link>
       </div>
 
+      {/* Feed tabs */}
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+        <div className="flex rounded-xl overflow-hidden border border-zinc-800 text-sm">
+          <Link
+            href="/"
+            className={`px-4 py-2 transition-colors ${!isFollowingFeed ? "bg-zinc-800 text-zinc-100" : "text-zinc-500 hover:text-zinc-300"}`}
+          >
+            Discover
+          </Link>
+          {session?.user ? (
+            <Link
+              href="/?feed=following"
+              className={`px-4 py-2 transition-colors ${isFollowingFeed ? "bg-purple-900 text-purple-200" : "text-zinc-500 hover:text-zinc-300"}`}
+            >
+              Following
+            </Link>
+          ) : null}
+        </div>
+
+        {tag && (
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-zinc-500">Filtered by:</span>
+            <span className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded-full text-purple-300">{tag}</span>
+            <Link href="/" className="text-zinc-500 hover:text-zinc-300 transition-colors">✕ clear</Link>
+          </div>
+        )}
+      </div>
+
       {/* Feed */}
       {threads.length === 0 ? (
-        <p className="text-center text-zinc-500 py-12">No rabbit holes yet. Be the first to dig one.</p>
+        <div className="text-center py-16 text-zinc-500">
+          <p className="text-lg">
+            {isFollowingFeed
+              ? "No holes from people you follow yet. Discover and follow some diggers."
+              : "No rabbit holes yet. Be the first to dig one."}
+          </p>
+          {isFollowingFeed && (
+            <Link href="/" className="mt-4 inline-block text-purple-400 hover:text-purple-300 transition-colors text-sm">
+              Browse the Discover feed →
+            </Link>
+          )}
+        </div>
       ) : (
         <div className="grid gap-4">
           {threads.map((thread) => (
@@ -67,11 +145,16 @@ export default async function FeedPage() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    {thread.tags.map(({ tag }: { tag: string }) => (
-                      <span key={tag} className="text-xs px-2 py-0.5 bg-zinc-800 group-hover:bg-zinc-700 rounded-full text-purple-300 border border-zinc-700">
-                        {tag}
-                      </span>
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {thread.tags.map(({ tag: t }: { tag: string }) => (
+                      <Link
+                        key={t}
+                        href={`/?tag=${t}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-xs px-2 py-0.5 bg-zinc-800 group-hover:bg-zinc-700 rounded-full text-purple-300 border border-zinc-700 hover:border-purple-600 transition-colors"
+                      >
+                        {t}
+                      </Link>
                     ))}
                   </div>
                   <h2 className="text-xl font-bold text-zinc-100 group-hover:text-purple-300 transition-colors truncate">
@@ -105,9 +188,15 @@ export default async function FeedPage() {
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-purple-800" />
                 )}
-                <span>{thread.author.displayName ?? thread.author.username}</span>
-                <span className={`font-medium ${RANK_COLORS[thread.author.rank]}`}>
-                  · {RANK_LABELS[thread.author.rank]}
+                <Link
+                  href={`/u/${thread.author.username}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="hover:text-zinc-300 transition-colors"
+                >
+                  {thread.author.displayName ?? thread.author.username}
+                </Link>
+                <span className={`font-medium ${RANK_COLORS[thread.author.rank as UserRank]}`}>
+                  · {RANK_LABELS[thread.author.rank as UserRank]}
                 </span>
                 <span className="ml-auto">{new Date(thread.createdAt).toLocaleDateString()}</span>
               </div>

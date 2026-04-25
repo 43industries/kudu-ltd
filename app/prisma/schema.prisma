@@ -32,7 +32,8 @@ model User {
   badges   UserBadge[]
   following Follow[] @relation("follower")
   followers Follow[] @relation("following")
-  theories Theory[]
+  theories      Theory[]
+  notifications Notification[]
 }
 
 enum UserRank {
@@ -287,4 +288,32 @@ model ThreadTag {
   thread   RabbitHoleThread @relation(fields: [threadId], references: [id])
 
   @@id([threadId, tag])
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Optional context links
+  threadId  String?
+  commentId String?
+  actorId   String?
+}
+
+enum NotificationType {
+  NEW_COMMENT
+  NEW_REPLY
+  NEW_FOLLOWER
+  LEVEL_SOLVED
+  BADGE_EARNED
 }

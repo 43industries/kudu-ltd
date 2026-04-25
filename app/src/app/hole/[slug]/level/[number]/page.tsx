@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
 import PuzzleForm from "@/components/PuzzleForm";
+import CommentsSection from "@/components/CommentsSection";
 import Link from "next/link";
 
 interface Props {
@@ -135,6 +136,11 @@ export default async function LevelPage({ params }: Props) {
             />
           )}
         </div>
+      )}
+
+      {/* Comments — only visible after solving */}
+      {isUnlocked && level.puzzle && (
+        <CommentsSection levelId={level.id} />
       )}
     </div>
   );

@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+app/.next/
+app/out/
+
+# Environment files — never commit secrets
+app/.env
+app/.env.local
+app/.env*.local
+
+# Prisma generated client
+app/node_modules/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript cache
+*.tsbuildinfo

@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rabbit Hole — Phase 4: UI/UX</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Clash+Display:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg:      #06060f;
+    --surface: #0c0c1a;
+    --surface2:#11112a;
+    --surface3:#161630;
+    --border:  #1a1a3a;
+    --border2: #242448;
+    --accent:  #6d28d9;
+    --accent2: #0891b2;
+    --accent3: #d97706;
+    --green:   #059669;
+    --red:     #dc2626;
+    --text:    #e2e8f0;
+    --muted:   #4a5568;
+    --muted2:  #718096;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Clash Display', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background:  var(--bg);
+    color:       var(--text);
+    font-family: var(--mono);
+    height:      100vh;
+    display:     flex;
+    flex-direction: column;
+    overflow:    hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1000; opacity: 0.4;
+  }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display: flex; align-items: center;
+    padding: 0 20px; height: 48px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0; gap: 20px;
+  }
+  .logo {
+    font-family: var(--display); font-size: 15px; font-weight: 700;
+    color: var(--text); display: flex; align-items: center; gap: 8px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px; background: var(--accent);
+    border-radius: 50%; box-shadow: 0 0 8px var(--accent);
+    animation: breathe 3s ease-in-out infinite;
+  }
+  @keyframes breathe { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .phase-badge {
+    font-size: 10px; letter-spacing: 2px; color: var(--accent2);
+    border: 1px solid rgba(8,145,178,0.3); padding: 3px 10px; border-radius: 20px;
+  }
+  .topbar-right { margin-left: auto; font-size: 11px; color: var(--muted); }
+
+  /* ── LAYOUT ── */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 260px; flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 12px 16px; font-size: 10px; letter-spacing: 2px;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+  .tree { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .tree::-webkit-scrollbar { width: 4px; }
+  .tree::-webkit-scrollbar-track { background: transparent; }
+  .tree::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .tree-group { margin-bottom: 4px; }
+  .tree-folder {
+    padding: 6px 16px; font-size: 11px; color: var(--muted2);
+    display: flex; align-items: center; gap: 6px; cursor: default;
+  }
+  .tree-file {
+    padding: 6px 16px 6px 32px; font-size: 11px; color: var(--muted2);
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: background 0.15s, color 0.15s; border-left: 2px solid transparent;
+  }
+  .tree-file:hover { background: var(--surface2); color: var(--text); }
+  .tree-file.active { background: var(--surface2); color: var(--text); border-left-color: var(--accent2); }
+
+  .file-ext { font-size: 9px; padding: 1px 5px; border-radius: 2px; margin-left: auto; }
+  .ext-tsx { background: rgba(109,40,217,0.15); color: #a78bfa; }
+  .ext-ts  { background: rgba(8,145,178,0.15);  color: var(--accent2); }
+  .ext-css { background: rgba(217,119,6,0.15);  color: var(--accent3); }
+
+  /* ── EDITOR ── */
+  .editor-area {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg);
+  }
+  .tabs-bar {
+    display: flex; align-items: center; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto; flex-shrink: 0; min-height: 38px;
+  }
+  .tabs-bar::-webkit-scrollbar { height: 2px; }
+  .tabs-bar::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  .code-tab {
+    padding: 0 16px; height: 38px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--muted); cursor: pointer;
+    border-right: 1px solid var(--border);
+    white-space: nowrap; transition: background 0.15s, color 0.15s; flex-shrink: 0;
+  }
+  .code-tab:hover { background: var(--surface2); color: var(--text); }
+  .code-tab.active { background: var(--bg); color: var(--text); border-bottom: 1px solid var(--bg); margin-bottom: -1px; }
+
+  .code-pane { display: none; flex: 1; overflow-y: auto; position: relative; }
+  .code-pane.active { display: flex; }
+  .code-pane::-webkit-scrollbar { width: 6px; }
+  .code-pane::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  .line-numbers {
+    padding: 20px 0; min-width: 52px; text-align: right;
+    font-size: 12px; line-height: 1.7; color: var(--muted);
+    border-right: 1px solid var(--border);
+    user-select: none; padding-right: 16px; flex-shrink: 0;
+  }
+  .line-numbers span { display: block; }
+
+  .code-content {
+    flex: 1; padding: 20px 24px; font-size: 12.5px;
+    line-height: 1.7; white-space: pre; overflow-x: auto;
+  }
+
+  /* ── Syntax colours ── */
+  .k   { color: #c084fc; }
+  .t   { color: #67e8f9; }
+  .s   { color: #fbbf24; }
+  .c   { color: #374151; }
+  .fn  { color: #34d399; }
+  .prop{ color: #93c5fd; }
+  .num { color: #fb923c; }
+  .dec { color: #f472b6; }
+  .op  { color: #94a3b8; }
+  .imp { color: #a5b4fc; }
+  .jsx { color: #f9a8d4; }
+  .com { color: #6b7280; font-style: italic; }
+
+  /* ── STATUS BAR ── */
+  .statusbar {
+    height: 24px; background: var(--accent2);
+    display: flex; align-items: center; padding: 0 16px;
+    font-size: 10px; gap: 20px; color: rgba(255,255,255,0.9); flex-shrink: 0;
+  }
+  .status-item { display: flex; align-items: center; gap: 5px; }
+
+  /* ── EXPLAIN PANEL ── */
+  .explain-panel {
+    width: 300px; flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    background: var(--surface); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .explain-header {
+    padding: 12px 16px; font-size: 10px; letter-spacing: 2px;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    text-transform: uppercase; display: flex; align-items: center; justify-content: space-between;
+  }
+  .explain-body {
+    flex: 1; overflow-y: auto; padding: 16px;
+    font-size: 12px; line-height: 1.8; color: var(--muted2);
+  }
+  .explain-body::-webkit-scrollbar { width: 4px; }
+  .explain-body::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  .explain-section { display: none; }
+  .explain-section.active { display: block; }
+
+  .explain-title {
+    font-family: var(--display); font-size: 14px; font-weight: 600;
+    color: var(--text); margin-bottom: 12px; line-height: 1.3;
+  }
+  .explain-p { margin-bottom: 12px; }
+
+  .explain-note {
+    background: var(--surface2); border-left: 2px solid var(--accent2);
+    padding: 10px 12px; margin: 12px 0; font-size: 11px;
+    color: var(--muted2); line-height: 1.7;
+  }
+  .explain-warn {
+    background: rgba(220,38,38,0.05); border-left: 2px solid var(--red);
+    padding: 10px 12px; margin: 12px 0; font-size: 11px; color: var(--muted2);
+  }
+  .explain-good {
+    background: rgba(5,150,105,0.05); border-left: 2px solid var(--green);
+    padding: 10px 12px; margin: 12px 0; font-size: 11px; color: var(--muted2);
+  }
+  .explain-depth {
+    border-left: 2px solid var(--accent);
+    background: rgba(109,40,217,0.06);
+    padding: 10px 12px; margin: 12px 0; font-size: 11px; color: var(--muted2); line-height: 1.7;
+  }
+
+  .tag {
+    display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 3px; margin: 2px;
+  }
+  .tag-blue   { background: rgba(8,145,178,0.15);  color: var(--accent2); }
+  .tag-purple { background: rgba(109,40,217,0.15); color: #a78bfa; }
+  .tag-amber  { background: rgba(217,119,6,0.15);  color: var(--accent3); }
+  .tag-green  { background: rgba(5,150,105,0.15);  color: var(--green); }
+  .tag-red    { background: rgba(220,38,38,0.1);   color: #f87171; }
+
+  /* ── Depth tier table ── */
+  .depth-table { width: 100%; border-collapse: collapse; font-size: 10px; margin: 12px 0; }
+  .depth-table th { color: var(--muted); font-weight: 400; text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--border); }
+  .depth-table td { padding: 5px 6px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .depth-table tr:last-child td { border-bottom: none; }
+  .depth-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; vertical-align: middle; margin-right: 4px; }
+
+  @media (max-width: 900px) { .explain-panel { display: none; } .sidebar { width: 200px; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><div class="logo-dot"></div> rabbit-hole</div>
+  <div class="phase-badge">PHASE 4 · UI/UX</div>
+  <div class="topbar-right">TypeScript · CSS Custom Properties · Canvas API · Web Animations API</div>
+</div>
+
+<div class="main">
+
+  <!-- ══ FILE TREE ══ -->
+  <div class="sidebar">
+    <div class="sidebar-header">Explorer</div>
+    <div class="tree">
+
+      <div class="tree-group">
+        <div class="tree-folder">📁 lib</div>
+        <div class="tree-file active" onclick="openFile('depth-theme')" id="file-depth-theme" style="padding-left:32px">
+          <span>depth-theme.ts</span><span class="file-ext ext-ts">ts</span>
+        </div>
+      </div>
+
+      <div class="tree-group">
+        <div class="tree-folder">📁 styles</div>
+        <div class="tree-file" onclick="openFile('globals')" id="file-globals" style="padding-left:32px">
+          <span>globals.css</span><span class="file-ext ext-css">css</span>
+        </div>
+      </div>
+
+      <div class="tree-group">
+        <div class="tree-folder">📁 components</div>
+        <div class="tree-file" onclick="openFile('depth-shell')" id="file-depth-shell" style="padding-left:32px">
+          <span>DepthShell.tsx</span><span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-file" onclick="openFile('atmospheric-bg')" id="file-atmospheric-bg" style="padding-left:32px">
+          <span>AtmosphericBg.tsx</span><span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-file" onclick="openFile('level-transition')" id="file-level-transition" style="padding-left:32px">
+          <span>LevelTransition.tsx</span><span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-file" onclick="openFile('puzzle-input')" id="file-puzzle-input" style="padding-left:32px">
+          <span>PuzzleInput.tsx</span><span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-file" onclick="openFile('depth-meter')" id="file-depth-meter" style="padding-left:32px">
+          <span>DepthMeter.tsx</span><span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-file" onclick="openFile('glitch-text')" id="file-glitch-text" style="padding-left:32px">
+          <span>GlitchText.tsx</span><span class="file-ext ext-tsx">tsx</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ EDITOR ══ -->
+  <div class="editor-area">
+    <div class="tabs-bar" id="tabs-bar">
+      <div class="code-tab active" id="tab-depth-theme" onclick="openFile('depth-theme')">
+        <span style="color:var(--accent2)">◆</span> depth-theme.ts
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════════
+         lib/depth-theme.ts
+    ══════════════════════════════════ -->
+    <div class="code-pane active" id="pane-depth-theme">
+      <div class="line-numbers" id="ln-depth-theme"></div>
+      <div class="code-content"><span class="c">// lib/depth-theme.ts
+// ══════════════════════════════════════════════════════════
+// SINGLE SOURCE OF TRUTH for depth-based visual identity.
+// Each depth tier is a complete design token set: colours,
+// noise level, typography weight, glitch rate, blur.
+// <DepthShell> reads this and injects CSS custom properties.
+// ══════════════════════════════════════════════════════════</span>
+
+<span class="k">export type</span> <span class="t">DepthLevel</span> = <span class="num">1</span> | <span class="num">2</span> | <span class="num">3</span> | <span class="num">4</span> | <span class="num">5</span> | <span class="num">6</span> | <span class="num">7</span>
+
+<span class="k">export interface</span> <span class="t">DepthTheme</span> {
+  <span class="prop">level</span>:         <span class="t">DepthLevel</span>
+  <span class="prop">name</span>:          <span class="t">string</span>       <span class="c">// 'Surface' → 'The Bottom'</span>
+  <span class="c">// ── Colour ──────────────────────────────────────────────</span>
+  <span class="prop">bg</span>:            <span class="t">string</span>       <span class="c">// page background</span>
+  <span class="prop">surface</span>:       <span class="t">string</span>       <span class="c">// card / panel fill</span>
+  <span class="prop">border</span>:        <span class="t">string</span>       <span class="c">// dividers, input outlines</span>
+  <span class="prop">accent</span>:        <span class="t">string</span>       <span class="c">// primary glow / active state</span>
+  <span class="prop">text</span>:          <span class="t">string</span>       <span class="c">// body copy</span>
+  <span class="prop">textMuted</span>:     <span class="t">string</span>       <span class="c">// secondary / disabled</span>
+  <span class="c">// ── Atmosphere ──────────────────────────────────────────</span>
+  <span class="prop">noiseOpacity</span>:  <span class="t">number</span>       <span class="c">// 0–1  film grain overlay</span>
+  <span class="prop">vignetteStr</span>:   <span class="t">number</span>       <span class="c">// 0–1  radial darkness at edges</span>
+  <span class="prop">blurPx</span>:        <span class="t">number</span>       <span class="c">// px   locked-content blur</span>
+  <span class="prop">scanlines</span>:     <span class="t">boolean</span>      <span class="c">// CRT scanline overlay</span>
+  <span class="c">// ── Typography ──────────────────────────────────────────</span>
+  <span class="prop">fontWeight</span>:    <span class="t">number</span>       <span class="c">// 400 → 300 as depth increases</span>
+  <span class="prop">letterSpacing</span>: <span class="t">string</span>       <span class="c">// 'normal' → '0.08em'</span>
+  <span class="c">// ── Timing ──────────────────────────────────────────────</span>
+  <span class="prop">transitionMs</span>:  <span class="t">number</span>       <span class="c">// ms  level-transition duration</span>
+  <span class="prop">glitchRate</span>:    <span class="t">number</span>       <span class="c">// ms  glitch interval (0 = off)</span>
+}
+
+<span class="k">export const</span> <span class="prop">DEPTH_THEMES</span>: <span class="t">Record</span>&lt;<span class="t">DepthLevel</span>, <span class="t">DepthTheme</span>&gt; = {
+  <span class="num">1</span>: {
+    level: <span class="num">1</span>, name: <span class="s">'Surface'</span>,
+    bg: <span class="s">'#06060f'</span>, surface: <span class="s">'#0c0c1a'</span>, border: <span class="s">'#1a1a3a'</span>,
+    accent: <span class="s">'#6d28d9'</span>, text: <span class="s">'#e2e8f0'</span>, textMuted: <span class="s">'#718096'</span>,
+    noiseOpacity: <span class="num">0.02</span>, vignetteStr: <span class="num">0.20</span>, blurPx: <span class="num">8</span>,  scanlines: <span class="k">false</span>,
+    fontWeight: <span class="num">400</span>, letterSpacing: <span class="s">'normal'</span>,
+    transitionMs: <span class="num">600</span>,  glitchRate: <span class="num">0</span>,
+  },
+  <span class="num">2</span>: {
+    level: <span class="num">2</span>, name: <span class="s">'Shallow'</span>,
+    bg: <span class="s">'#04040e'</span>, surface: <span class="s">'#09091a'</span>, border: <span class="s">'#161636'</span>,
+    accent: <span class="s">'#5b21b6'</span>, text: <span class="s">'#d1d5db'</span>, textMuted: <span class="s">'#6b7280'</span>,
+    noiseOpacity: <span class="num">0.05</span>, vignetteStr: <span class="num">0.35</span>, blurPx: <span class="num">12</span>, scanlines: <span class="k">false</span>,
+    fontWeight: <span class="num">400</span>, letterSpacing: <span class="s">'normal'</span>,
+    transitionMs: <span class="num">800</span>,  glitchRate: <span class="num">0</span>,
+  },
+  <span class="num">3</span>: {
+    level: <span class="num">3</span>, name: <span class="s">'Murky'</span>,
+    bg: <span class="s">'#03040d'</span>, surface: <span class="s">'#07091a'</span>, border: <span class="s">'#12153a'</span>,
+    accent: <span class="s">'#0891b2'</span>, text: <span class="s">'#c0c8d8'</span>, textMuted: <span class="s">'#5a6478'</span>,
+    noiseOpacity: <span class="num">0.09</span>, vignetteStr: <span class="num">0.50</span>, blurPx: <span class="num">16</span>, scanlines: <span class="k">false</span>,
+    fontWeight: <span class="num">300</span>, letterSpacing: <span class="s">'0.01em'</span>,
+    transitionMs: <span class="num">1000</span>, glitchRate: <span class="num">30000</span>,
+  },
+  <span class="num">4</span>: {
+    level: <span class="num">4</span>, name: <span class="s">'Deep'</span>,
+    bg: <span class="s">'#020305'</span>, surface: <span class="s">'#050810'</span>, border: <span class="s">'#0e1228'</span>,
+    accent: <span class="s">'#0e7490'</span>, text: <span class="s">'#a8b8cc'</span>, textMuted: <span class="s">'#4a5568'</span>,
+    noiseOpacity: <span class="num">0.14</span>, vignetteStr: <span class="num">0.65</span>, blurPx: <span class="num">20</span>, scanlines: <span class="k">true</span>,
+    fontWeight: <span class="num">300</span>, letterSpacing: <span class="s">'0.02em'</span>,
+    transitionMs: <span class="num">1200</span>, glitchRate: <span class="num">15000</span>,
+  },
+  <span class="num">5</span>: {
+    level: <span class="num">5</span>, name: <span class="s">'Abyss'</span>,
+    bg: <span class="s">'#020205'</span>, surface: <span class="s">'#040508'</span>, border: <span class="s">'#0c0c1e'</span>,
+    accent: <span class="s">'#b45309'</span>, text: <span class="s">'#94a3b8'</span>, textMuted: <span class="s">'#374151'</span>,
+    noiseOpacity: <span class="num">0.20</span>, vignetteStr: <span class="num">0.75</span>, blurPx: <span class="num">24</span>, scanlines: <span class="k">true</span>,
+    fontWeight: <span class="num">300</span>, letterSpacing: <span class="s">'0.03em'</span>,
+    transitionMs: <span class="num">1600</span>, glitchRate: <span class="num">8000</span>,
+  },
+  <span class="num">6</span>: {
+    level: <span class="num">6</span>, name: <span class="s">'Void'</span>,
+    bg: <span class="s">'#010104'</span>, surface: <span class="s">'#030407'</span>, border: <span class="s">'#080c1c'</span>,
+    accent: <span class="s">'#991b1b'</span>, text: <span class="s">'#64748b'</span>, textMuted: <span class="s">'#1f2937'</span>,
+    noiseOpacity: <span class="num">0.28</span>, vignetteStr: <span class="num">0.85</span>, blurPx: <span class="num">32</span>, scanlines: <span class="k">true</span>,
+    fontWeight: <span class="num">300</span>, letterSpacing: <span class="s">'0.05em'</span>,
+    transitionMs: <span class="num">2000</span>, glitchRate: <span class="num">4000</span>,
+  },
+  <span class="num">7</span>: {
+    level: <span class="num">7</span>, name: <span class="s">'The Bottom'</span>,
+    bg: <span class="s">'#010102'</span>, surface: <span class="s">'#020305'</span>, border: <span class="s">'#060810'</span>,
+    accent: <span class="s">'#7f1d1d'</span>, text: <span class="s">'#334155'</span>, textMuted: <span class="s">'#111827'</span>,
+    noiseOpacity: <span class="num">0.38</span>, vignetteStr: <span class="num">0.95</span>, blurPx: <span class="num">40</span>, scanlines: <span class="k">true</span>,
+    fontWeight: <span class="num">300</span>, letterSpacing: <span class="s">'0.08em'</span>,
+    transitionMs: <span class="num">2600</span>, glitchRate: <span class="num">2000</span>,
+  },
+}
+
+<span class="k">export function</span> <span class="fn">getDepthTheme</span>(level: <span class="t">number</span>): <span class="t">DepthTheme</span> {
+  <span class="k">const</span> clamped = <span class="t">Math</span>.<span class="fn">max</span>(<span class="num">1</span>, <span class="t">Math</span>.<span class="fn">min</span>(<span class="num">7</span>, level)) <span class="k">as</span> <span class="t">DepthLevel</span>
+  <span class="k">return</span> <span class="prop">DEPTH_THEMES</span>[clamped]
+}
+
+<span class="c">// Returns CSS custom property key/value pairs for a depth theme.
+// Applied to the DepthShell root element via el.style.setProperty().</span>
+<span class="k">export function</span> <span class="fn">depthToCSSVars</span>(theme: <span class="t">DepthTheme</span>): <span class="t">Record</span>&lt;<span class="t">string</span>, <span class="t">string</span>&gt; {
+  <span class="k">return</span> {
+    <span class="s">'--d-bg'</span>:         theme.<span class="prop">bg</span>,
+    <span class="s">'--d-surface'</span>:    theme.<span class="prop">surface</span>,
+    <span class="s">'--d-border'</span>:     theme.<span class="prop">border</span>,
+    <span class="s">'--d-accent'</span>:     theme.<span class="prop">accent</span>,
+    <span class="s">'--d-text'</span>:       theme.<span class="prop">text</span>,
+    <span class="s">'--d-text-muted'</span>: theme.<span class="prop">textMuted</span>,
+    <span class="s">'--d-noise'</span>:      <span class="t">String</span>(theme.<span class="prop">noiseOpacity</span>),
+    <span class="s">'--d-vignette'</span>:   <span class="t">String</span>(theme.<span class="prop">vignetteStr</span>),
+    <span class="s">'--d-blur'</span>:       `${theme.<span class="prop">blurPx</span>}px`,
+    <span class="s">'--d-fw'</span>:         <span class="t">String</span>(theme.<span class="prop">fontWeight</span>),
+    <span class="s">'--d-ls'</span>:         theme.<span class="prop">letterSpacing</span>,
+    <span class="s">'--d-transition'</span>: `${theme.<span class="prop">transitionMs</span>}ms`,
+  }
+}</div>
+    </div>
+
+    <!-- ═════════════════════════════════
+         styles/globals.css
+    ══════════════════════════════════ -->
+    <div class="code-pane" id="pane-globals">
+      <div class="line-numbers" id="ln-globals"></div>
+      <div class="code-content"><span class="com">/* styles/globals.css
+ * Depth-aware global stylesheet.
+ * All --d-* variables are injected by &lt;DepthShell&gt; at runtime.
+ * This file provides: base resets, depth utility classes,
+ * pip strip, locked-blur, glow ring, and keyframe library. */</span>
+
+<span class="com">/* ── Reset ─────────────────────────────────────────────── */</span>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+<span class="com">/* ── Root defaults (overridden by DepthShell) ─────────── */</span>
+:root {
+  --d-bg:         #06060f;
+  --d-surface:    #0c0c1a;
+  --d-border:     #1a1a3a;
+  --d-accent:     #6d28d9;
+  --d-text:       #e2e8f0;
+  --d-text-muted: #718096;
+  --d-blur:       8px;
+  --d-fw:         400;
+  --d-ls:         normal;
+  --d-transition: 600ms;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  background:     var(--d-bg);
+  color:          var(--d-text);
+  font-family:    var(--mono);
+  font-weight:    var(--d-fw);
+  letter-spacing: var(--d-ls);
+  transition:
+    background    var(--d-transition) ease,
+    color         var(--d-transition) ease,
+    font-weight   var(--d-transition) ease;
+}
+
+<span class="com">/* ── Depth utility classes ─────────────────────────────── */</span>
+.d-surface {
+  background: var(--d-surface);
+  border:     1px solid var(--d-border);
+  transition: background var(--d-transition) ease,
+              border-color var(--d-transition) ease;
+}
+.d-accent      { color: var(--d-accent); }
+.d-text-muted  { color: var(--d-text-muted); }
+
+<span class="com">/* ── Depth pip strip ───────────────────────────────────── */</span>
+<span class="com">/* Horizontal strip of pips at the top of the hole page.
+   Each pip = one level. Colour/glow shift with depth. */</span>
+.depth-strip {
+  display: flex; gap: 6px; align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--d-border);
+  background: var(--d-surface);
+  transition: background var(--d-transition) ease;
+}
+.pip {
+  width: 28px; height: 4px; border-radius: 2px;
+  background: var(--d-border);
+  transition: background var(--d-transition) ease, box-shadow 0.3s;
+}
+.pip.solved  { background: var(--d-accent); }
+.pip.current {
+  background: var(--d-accent);
+  box-shadow: 0 0 8px var(--d-accent);
+  animation: pip-pulse 1.6s ease-in-out infinite alternate;
+}
+.pip.locked  { opacity: 0.3; }
+
+@keyframes pip-pulse {
+  from { box-shadow: 0 0 4px var(--d-accent); }
+  to   { box-shadow: 0 0 18px var(--d-accent); }
+}
+
+<span class="com">/* ── Locked content blur ──────────────────────────────── */</span>
+.locked-content {
+  filter:         blur(var(--d-blur));
+  pointer-events: none;
+  user-select:    none;
+  transition:     filter var(--d-transition) ease;
+}
+
+<span class="com">/* ── Depth glow ring (panels, cards) ──────────────────── */</span>
+.glow-ring {
+  border:     1px solid var(--d-accent);
+  box-shadow: 0 0 0 1px var(--d-accent),
+              inset 0 0 24px rgba(0,0,0,0.5);
+  transition: border-color var(--d-transition) ease,
+              box-shadow   var(--d-transition) ease;
+}
+
+<span class="com">/* ── Glitch keyframes ─────────────────────────────────── */</span>
+@keyframes glitch-h {
+  0%   { clip-path: inset(40% 0 61% 0); transform: translate(-2px); }
+  20%  { clip-path: inset(92% 0  1% 0); transform: translate( 2px); }
+  40%  { clip-path: inset(43% 0  1% 0); transform: translate(-1px); }
+  60%  { clip-path: inset(25% 0 58% 0); transform: translate( 1px); }
+  80%  { clip-path: inset(54% 0  7% 0); transform: translate(-2px); }
+  100% { clip-path: inset(58% 0 43% 0); transform: translate( 2px); }
+}
+@keyframes glitch-v {
+  0%   { clip-path: inset(29% 0 38% 0); transform: translate( 3px); }
+  30%  { clip-path: inset(11% 0 62% 0); transform: translate(-2px); }
+  70%  { clip-path: inset(77% 0  8% 0); transform: translate( 2px); }
+  100% { clip-path: inset(41% 0 49% 0); transform: translate(-3px); }
+}
+
+<span class="com">/* ── Level-solve flash ────────────────────────────────── */</span>
+@keyframes solve-flash {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+<span class="com">/* ── Input shake (wrong answer) ───────────────────────── */</span>
+@keyframes input-shake {
+  0%,100% { transform: translateX(0); }
+  15%     { transform: translateX(-8px); }
+  30%     { transform: translateX( 8px); }
+  45%     { transform: translateX(-6px); }
+  60%     { transform: translateX( 6px); }
+  75%     { transform: translateX(-3px); }
+  90%     { transform: translateX( 3px); }
+}
+.shake { animation: input-shake 0.36s ease-out; }</div>
+    </div>
+
+    <!-- ═════════════════════════════════
+         components/DepthShell.tsx
+    ══════════════════════════════════ -->
+    <div class="code-pane" id="pane-depth-shell">
+      <div class="line-numbers" id="ln-depth-shell"></div>
+      <div class="code-content"><span class="c">// components/DepthShell.tsx
+// ══════════════════════════════════════════════════════════
+// Context provider + CSS variable injector.
+// Wrap the hole page with &lt;DepthShell depth={currentLevel}&gt;.
+// Child components call useDepth() to get the current theme.
+// CSS variables are applied to the shell div so all
+// downstream CSS can reference --d-* without prop-drilling.
+// ══════════════════════════════════════════════════════════</span>
+
+<span class="s">'use client'</span>
+<span class="imp">import</span> { <span class="fn">createContext</span>, <span class="fn">useContext</span>, <span class="fn">useEffect</span>, <span class="fn">useRef</span> } <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> { <span class="fn">getDepthTheme</span>, <span class="fn">depthToCSSVars</span>, <span class="k">type</span> <span class="t">DepthTheme</span> } <span class="imp">from</span> <span class="s">'@/lib/depth-theme'</span>
+
+<span class="k">interface</span> <span class="t">DepthCtx</span> { <span class="prop">theme</span>: <span class="t">DepthTheme</span>; <span class="prop">depth</span>: <span class="t">number</span> }
+
+<span class="k">const</span> <span class="prop">DepthContext</span> = <span class="fn">createContext</span>&lt;<span class="t">DepthCtx</span>&gt;({
+  theme: <span class="fn">getDepthTheme</span>(<span class="num">1</span>), depth: <span class="num">1</span>,
+})
+
+<span class="k">export function</span> <span class="fn">useDepth</span>() {
+  <span class="k">return</span> <span class="fn">useContext</span>(<span class="prop">DepthContext</span>)
+}
+
+<span class="k">interface</span> <span class="t">Props</span> { <span class="prop">depth</span>: <span class="t">number</span>; <span class="prop">children</span>: <span class="t">React.ReactNode</span> }
+
+<span class="k">export default function</span> <span class="fn">DepthShell</span>({ depth, children }: <span class="t">Props</span>) {
+  <span class="k">const</span> theme  = <span class="fn">getDepthTheme</span>(depth)
+  <span class="k">const</span> ref    = <span class="fn">useRef</span>&lt;<span class="t">HTMLDivElement</span>&gt;(<span class="k">null</span>)
+
+  <span class="c">// Inject CSS custom properties onto the shell root element.</span>
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="k">const</span> el   = ref.<span class="prop">current</span>
+    <span class="k">if</span> (!el) <span class="k">return</span>
+    <span class="k">const</span> vars = <span class="fn">depthToCSSVars</span>(theme)
+    <span class="t">Object</span>.<span class="fn">entries</span>(vars).<span class="fn">forEach</span>(([k, v]) =&gt; el.<span class="prop">style</span>.<span class="fn">setProperty</span>(k, v))
+  }, [theme])
+
+  <span class="k">return</span> (
+    &lt;<span class="t">DepthContext.Provider</span> <span class="prop">value</span>={{ theme, depth }}&gt;
+      &lt;<span class="jsx">div</span>
+        <span class="prop">ref</span>={ref}
+        <span class="prop">className</span>=<span class="s">"depth-shell"</span>
+        <span class="prop">data-depth</span>={depth}
+        <span class="prop">data-depth-name</span>={theme.<span class="prop">name</span>}
+        <span class="prop">style</span>={{
+          background:    theme.<span class="prop">bg</span>,
+          color:         theme.<span class="prop">text</span>,
+          fontWeight:    theme.<span class="prop">fontWeight</span>,
+          letterSpacing: theme.<span class="prop">letterSpacing</span>,
+          minHeight:     <span class="s">'100vh'</span>,
+          position:      <span class="s">'relative'</span>,
+          transition:    `background ${theme.<span class="prop">transitionMs</span>}ms ease,
+                         color ${theme.<span class="prop">transitionMs</span>}ms ease`,
+        }}
+      &gt;
+        &lt;<span class="t">NoiseOverlay</span>   <span class="prop">opacity</span>={theme.<span class="prop">noiseOpacity</span>} /&gt;
+        {theme.<span class="prop">scanlines</span> &amp;&amp; &lt;<span class="t">ScanlinesOverlay</span> /&gt;}
+        &lt;<span class="t">VignetteOverlay</span> <span class="prop">strength</span>={theme.<span class="prop">vignetteStr</span>} /&gt;
+        {children}
+      &lt;/<span class="jsx">div</span>&gt;
+    &lt;/<span class="t">DepthContext.Provider</span>&gt;
+  )
+}
+
+<span class="c">// ── Atmospheric overlays ──────────────────────────────────</span>
+
+<span class="k">function</span> <span class="fn">NoiseOverlay</span>({ opacity }: { opacity: <span class="t">number</span> }) {
+  <span class="k">return</span> (
+    &lt;<span class="jsx">div</span>
+      <span class="prop">aria-hidden</span>
+      <span class="prop">style</span>={{
+        position: <span class="s">'fixed'</span>, inset: <span class="num">0</span>, zIndex: <span class="num">1</span>,
+        pointerEvents: <span class="s">'none'</span>, mixBlendMode: <span class="s">'overlay'</span>,
+        backgroundImage: `url("data:image/svg+xml,&lt;svg viewBox='0 0 256 256'
+          xmlns='http://www.w3.org/2000/svg'&gt;&lt;filter id='n'&gt;&lt;feTurbulence
+          type='fractalNoise' baseFrequency='0.9' numOctaves='4'
+          stitchTiles='stitch'/&gt;&lt;/filter&gt;&lt;rect width='100%25'
+          height='100%25' filter='url(%23n)'/&gt;&lt;/svg&gt;")`,
+        opacity,
+        transition: <span class="s">'opacity 1200ms ease'</span>,
+      }}
+    /&gt;
+  )
+}
+
+<span class="k">function</span> <span class="fn">ScanlinesOverlay</span>() {
+  <span class="k">return</span> (
+    &lt;<span class="jsx">div</span>
+      <span class="prop">aria-hidden</span>
+      <span class="prop">style</span>={{
+        position: <span class="s">'fixed'</span>, inset: <span class="num">0</span>, zIndex: <span class="num">2</span>, pointerEvents: <span class="s">'none'</span>,
+        backgroundImage: <span class="s">'repeating-linear-gradient(0deg, transparent,
+          transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px)'</span>,
+      }}
+    /&gt;
+  )
+}
+
+<span class="k">function</span> <span class="fn">VignetteOverlay</span>({ strength }: { strength: <span class="t">number</span> }) {
+  <span class="k">const</span> hex = <span class="t">Math</span>.<span class="fn">round</span>(strength * <span class="num">255</span>).<span class="fn">toString</span>(<span class="num">16</span>).<span class="fn">padStart</span>(<span class="num">2</span>, <span class="s">'0'</span>)
+  <span class="k">return</span> (
+    &lt;<span class="jsx">div</span>
+      <span class="prop">aria-hidden</span>
+      <span class="prop">style</span>={{
+        position: <span class="s">'fixed'</span>, inset: <span class="num">0</span>, zIndex: <span class="num">3</span>, pointerEvents: <span class="s">'none'</span>,
+        background: `radial-gradient(ellipse at center,
+          transparent 35%, #000${hex} 100%)`,
+        transition: <span class="s">'background 1200ms ease'</span>,
+      }}
+    /&gt;
+  )
+}</div>
+    </div>
+
+    <!-- ═════════════════════════════════
+         components/AtmosphericBg.tsx
+    ══════════════════════════════════ -->
+    <div class="code-pane" id="pane-atmospheric-bg">
+      <div class="line-numbers" id="ln-atmospheric-bg"></div>
+      <div class="code-content"><span class="c">// components/AtmosphericBg.tsx
+// ══════════════════════════════════════════════════════════
+// Canvas-based atmospheric background.
+// Renders slow, animated radial blobs tinted with the depth
+// accent colour. Blob count = depth level. FPS intentionally
+// capped at 12 — the stuttery feel adds to the degradation.
+// Lives at z-index:0, behind all content.
+// ══════════════════════════════════════════════════════════</span>
+
+<span class="s">'use client'</span>
+<span class="imp">import</span> { <span class="fn">useEffect</span>, <span class="fn">useRef</span> } <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> { <span class="fn">useDepth</span> } <span class="imp">from</span> <span class="s">'./DepthShell'</span>
+
+<span class="k">const</span> <span class="prop">FPS</span> = <span class="num">12</span>   <span class="c">// low by design — degraded-signal aesthetic</span>
+
+<span class="k">export default function</span> <span class="fn">AtmosphericBg</span>() {
+  <span class="k">const</span> { theme, depth } = <span class="fn">useDepth</span>()
+  <span class="k">const</span> canvasRef = <span class="fn">useRef</span>&lt;<span class="t">HTMLCanvasElement</span>&gt;(<span class="k">null</span>)
+  <span class="k">const</span> rafRef    = <span class="fn">useRef</span>&lt;<span class="t">number</span>&gt;(<span class="num">0</span>)
+  <span class="k">const</span> lastRef   = <span class="fn">useRef</span>&lt;<span class="t">number</span>&gt;(<span class="num">0</span>)
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="k">const</span> canvas = canvasRef.<span class="prop">current</span>
+    <span class="k">if</span> (!canvas) <span class="k">return</span>
+    <span class="k">const</span> ctx = canvas.<span class="fn">getContext</span>(<span class="s">'2d'</span>)!
+
+    <span class="k">const</span> <span class="fn">resize</span> = () => {
+      canvas.<span class="prop">width</span>  = window.<span class="prop">innerWidth</span>
+      canvas.<span class="prop">height</span> = window.<span class="prop">innerHeight</span>
+    }
+    <span class="fn">resize</span>()
+    window.<span class="fn">addEventListener</span>(<span class="s">'resize'</span>, resize)
+
+    <span class="k">let</span> t = <span class="num">0</span>
+
+    <span class="k">const</span> <span class="fn">draw</span> = (now: <span class="t">number</span>) =&gt; {
+      rafRef.<span class="prop">current</span> = <span class="fn">requestAnimationFrame</span>(draw)
+      <span class="k">if</span> (now - lastRef.<span class="prop">current</span> &lt; <span class="num">1000</span> / <span class="prop">FPS</span>) <span class="k">return</span>
+      lastRef.<span class="prop">current</span> = now
+      t += <span class="num">0.004</span>
+
+      <span class="k">const</span> { width: w, height: h } = canvas
+
+      ctx.<span class="prop">fillStyle</span> = theme.<span class="prop">bg</span>
+      ctx.<span class="fn">fillRect</span>(<span class="num">0</span>, <span class="num">0</span>, w, h)
+
+      <span class="c">// One animated blob per depth level, orbit the canvas centre</span>
+      <span class="k">for</span> (<span class="k">let</span> i = <span class="num">0</span>; i &lt; depth; i++) {
+        <span class="k">const</span> angle  = t + (i * <span class="t">Math</span>.<span class="prop">PI</span> * <span class="num">2</span>) / depth
+        <span class="k">const</span> r      = <span class="t">Math</span>.<span class="fn">min</span>(w, h) * (<span class="num">0.28</span> + <span class="num">0.08</span> * <span class="t">Math</span>.<span class="fn">sin</span>(t * <span class="num">0.7</span> + i))
+        <span class="k">const</span> x      = w / <span class="num">2</span> + <span class="t">Math</span>.<span class="fn">cos</span>(angle) * r * <span class="num">0.5</span>
+        <span class="k">const</span> y      = h / <span class="num">2</span> + <span class="t">Math</span>.<span class="fn">sin</span>(angle) * r * <span class="num">0.4</span>
+
+        <span class="k">const</span> grd = ctx.<span class="fn">createRadialGradient</span>(x, y, <span class="num">0</span>, x, y, r)
+        grd.<span class="fn">addColorStop</span>(<span class="num">0</span>, theme.<span class="prop">accent</span> + <span class="s">'20'</span>)
+        grd.<span class="fn">addColorStop</span>(<span class="num">1</span>, <span class="s">'transparent'</span>)
+
+        ctx.<span class="prop">fillStyle</span> = grd
+        ctx.<span class="fn">beginPath</span>()
+        ctx.<span class="fn">arc</span>(x, y, r, <span class="num">0</span>, <span class="t">Math</span>.<span class="prop">PI</span> * <span class="num">2</span>)
+        ctx.<span class="fn">fill</span>()
+      }
+    }
+
+    rafRef.<span class="prop">current</span> = <span class="fn">requestAnimationFrame</span>(draw)
+    <span class="k">return</span> () =&gt; {
+      <span class="fn">cancelAnimationFrame</span>(rafRef.<span class="prop">current</span>)
+      window.<span class="fn">removeEventListener</span>(<span class="s">'resize'</span>, resize)
+    }
+  }, [theme, depth])
+
+  <span class="k">return</span> (
+    &lt;<span class="jsx">canvas</span>
+      <span class="prop">ref</span>={canvasRef}
+      <span class="prop">aria-hidden</span>
+      <span class="prop">style</span>={{
+        position:      <span class="s">'fixed'</span>,
+        inset:         <span class="num">0</span>,
+        zIndex:        <span class="num">0</span>,
+        pointerEvents: <span class="s">'none'</span>,
+        <span class="c">// Opacity climbs with depth — deeper = more atmospheric</span>
+        opacity: <span class="num">0.55</span> + depth * <span class="num">0.06</span>,
+        transition:    <span class="s">'opacity 1200ms ease'</span>,
+      }}
+    /&gt;
+  )
+}</div>
+    </div>
+
+    <!-- ═════════════════════════════════
+         components/LevelTransition.tsx
+    ══════════════════════════════════ -->
+    <div class="code-pane" id="pane-level-transition">
+      <div class="line-numbers" id="ln-level-transition"></div>
+      <div class="code-content"><span class="c">// components/LevelTransition.tsx
+// ══════════════════════════════════════════════════════════
+// Full-screen overlay that fires on a correct solve.
+// Three phases: fade-in → hold (show XP + message) → fade-out.
+// Duration and messaging both scale with depth level.
+// On completion, calls onDone() which advances the active level.
+// ══════════════════════════════════════════════════════════</span>
+
+<span class="s">'use client'</span>
+<span class="imp">import</span> { <span class="fn">useEffect</span>, <span class="fn">useState</span> } <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> { <span class="fn">useDepth</span> }            <span class="imp">from</span> <span class="s">'./DepthShell'</span>
+<span class="imp">import</span> <span class="t">GlitchText</span>              <span class="imp">from</span> <span class="s">'./GlitchText'</span>
+
+<span class="k">interface</span> <span class="t">Props</span> {
+  <span class="prop">xp</span>:          <span class="t">number</span>
+  <span class="prop">levelNumber</span>: <span class="t">number</span>
+  <span class="prop">totalLevels</span>: <span class="t">number</span>
+  <span class="prop">isFinal</span>:     <span class="t">boolean</span>
+  <span class="prop">onDone</span>:      () =&gt; <span class="k">void</span>
+}
+
+<span class="k">const</span> <span class="prop">DESCENT_MESSAGES</span> = [
+  <span class="s">'Going deeper…'</span>,
+  <span class="s">'The signal weakens…'</span>,
+  <span class="s">"You shouldn't be here."</span>,
+  <span class="s">'They said it was unsolvable.'</span>,
+  <span class="s">'How far are you willing to go?'</span>,
+  <span class="s">'The truth is very close now.'</span>,
+  <span class="s">'There is no coming back.'</span>,
+]
+
+<span class="k">export default function</span> <span class="fn">LevelTransition</span>({ xp, levelNumber, totalLevels, isFinal, onDone }: <span class="t">Props</span>) {
+  <span class="k">const</span> { theme, depth } = <span class="fn">useDepth</span>()
+  <span class="k">const</span> [phase, <span class="fn">setPhase</span>] = <span class="fn">useState</span>&lt;<span class="s">'in'</span> | <span class="s">'hold'</span> | <span class="s">'out'</span>&gt;(<span class="s">'in'</span>)
+  <span class="k">const</span> dur = theme.<span class="prop">transitionMs</span>
+  <span class="k">const</span> msg = <span class="prop">DESCENT_MESSAGES</span>[<span class="t">Math</span>.<span class="fn">min</span>(depth - <span class="num">1</span>, <span class="prop">DESCENT_MESSAGES</span>.<span class="prop">length</span> - <span class="num">1</span>)]
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="k">const</span> t1 = <span class="fn">setTimeout</span>(() =&gt; <span class="fn">setPhase</span>(<span class="s">'hold'</span>), <span class="num">350</span>)
+    <span class="k">const</span> t2 = <span class="fn">setTimeout</span>(() =&gt; <span class="fn">setPhase</span>(<span class="s">'out'</span>),  dur * <span class="num">0.68</span>)
+    <span class="k">const</span> t3 = <span class="fn">setTimeout</span>(<span class="prop">onDone</span>, dur)
+    <span class="k">return</span> () =&gt; { <span class="fn">clearTimeout</span>(t1); <span class="fn">clearTimeout</span>(t2); <span class="fn">clearTimeout</span>(t3) }
+  }, [dur, onDone])
+
+  <span class="k">const</span> visible = phase === <span class="s">'hold'</span>
+
+  <span class="k">return</span> (
+    &lt;<span class="jsx">div</span> <span class="prop">style</span>={{
+      position: <span class="s">'fixed'</span>, inset: <span class="num">0</span>, zIndex: <span class="num">900</span>,
+      display: <span class="s">'flex'</span>, flexDirection: <span class="s">'column'</span>,
+      alignItems: <span class="s">'center'</span>, justifyContent: <span class="s">'center'</span>,
+      background: theme.<span class="prop">bg</span>,
+      opacity:    phase === <span class="s">'in'</span> ? <span class="num">0</span> : phase === <span class="s">'hold'</span> ? <span class="num">1</span> : <span class="num">0</span>,
+      transition: `opacity ${dur * <span class="num">0.35</span>}ms ease`,
+      gap: <span class="num">16</span>,
+    }}&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">style</span>={{  <span class="c">// XP number</span>
+        fontFamily: <span class="s">'var(--mono)'</span>, fontSize: <span class="num">52</span>, fontWeight: <span class="num">700</span>,
+        color: theme.<span class="prop">accent</span>, letterSpacing: <span class="s">'-2px'</span>,
+        textShadow: `0 0 60px ${theme.<span class="prop">accent</span>}`,
+        opacity:   visible ? <span class="num">1</span> : <span class="num">0</span>,
+        transform: visible ? <span class="s">'translateY(0)'</span> : <span class="s">'translateY(20px)'</span>,
+        transition: `all ${dur * <span class="num">0.28</span>}ms ease ${dur * <span class="num">0.08</span>}ms`,
+      }}&gt;
+        +{xp} XP
+      &lt;/<span class="jsx">div</span>&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">style</span>={{  <span class="c">// level label</span>
+        fontSize: <span class="num">10</span>, letterSpacing: <span class="num">4</span>,
+        color: theme.<span class="prop">textMuted</span>, textTransform: <span class="s">'uppercase'</span>,
+      }}&gt;
+        {isFinal ? <span class="s">'Hole Complete'</span> : `Level ${levelNumber} → ${levelNumber + <span class="num">1</span>}`}
+      &lt;/<span class="jsx">div</span>&gt;
+
+      &lt;<span class="t">GlitchText</span>  <span class="c">// atmospheric message</span>
+        <span class="prop">text</span>={isFinal ? <span class="s">'✓ The Truth Revealed'</span> : msg}
+        <span class="prop">style</span>={{ fontSize: <span class="num">12</span>, letterSpacing: <span class="num">3</span>, color: theme.<span class="prop">text</span>, opacity: <span class="num">0.6</span> }}
+      /&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">style</span>={{ display: <span class="s">'flex'</span>, gap: <span class="num">8</span>, marginTop: <span class="num">32</span> }}&gt;
+        {<span class="t">Array</span>.<span class="fn">from</span>({ length: totalLevels }, (_, i) =&gt; (
+          &lt;<span class="jsx">div</span> <span class="prop">key</span>={i} <span class="prop">style</span>={{
+            width: <span class="num">32</span>, height: <span class="num">3</span>, borderRadius: <span class="num">2</span>,
+            background: i &lt; levelNumber ? theme.<span class="prop">accent</span> : theme.<span class="prop">border</span>,
+            boxShadow:  i === levelNumber - <span class="num">1</span> ? `0 0 12px ${theme.<span class="prop">accent</span>}` : <span class="s">'none'</span>,
+            transition: <span class="s">'background 0.6s ease'</span>,
+          }} /&gt;
+        ))}
+      &lt;/<span class="jsx">div</span>&gt;
+
+    &lt;/<span class="jsx">div</span>&gt;
+  )
+}</div>
+    </div>
+
+    <!-- ═════════════════════════════════
+         components/PuzzleInput.tsx
+    ══════════════════════════════════ -->
+    <div class="code-pane" id="pane-puzzle-input">
+      <div class="line-numbers" id="ln-puzzle-input"></div>
+      <div class="code-content"><span class="c">// components/PuzzleInput.tsx
+// ══════════════════════════════════════════════════════════
+// The answer input — the most-touched element in the game.
+// States: idle → typing → submitting → correct | wrong | locked
+// Wrong:  red border + shake animation + feedback for 2s
+// Correct:green border + glow, then onSolve() fires after 0.8s
+// Locked: blurred input + "SEALED" message, no interaction
+// All border/glow colours come from the depth theme.
+// ══════════════════════════════════════════════════════════</span>
+
+<span class="s">'use client'</span>
+<span class="imp">import</span> { <span class="fn">useState</span>, <span class="fn">useRef</span>, <span class="fn">useCallback</span> } <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> { <span class="fn">useDepth</span> }  <span class="imp">from</span> <span class="s">'./DepthShell'</span>
+<span class="imp">import</span> { <span class="fn">useAttempt</span> } <span class="imp">from</span> <span class="s">'@/hooks/useAttempt'</span>
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">AttemptResponse</span> } <span class="imp">from</span> <span class="s">'@/types'</span>
+
+<span class="k">type</span> <span class="t">InputState</span> = <span class="s">'idle'</span> | <span class="s">'typing'</span> | <span class="s">'submitting'</span> | <span class="s">'correct'</span> | <span class="s">'wrong'</span> | <span class="s">'locked'</span>
+
+<span class="k">interface</span> <span class="t">Props</span> {
+  <span class="prop">puzzleId</span>:    <span class="t">string</span>
+  <span class="prop">levelId</span>:     <span class="t">string</span>
+  <span class="prop">maxAttempts</span>: <span class="t">number</span> | <span class="k">null</span>
+  <span class="prop">onSolve</span>:     (result: <span class="t">AttemptResponse</span>) =&gt; <span class="k">void</span>
+}
+
+<span class="k">export default function</span> <span class="fn">PuzzleInput</span>({ puzzleId, levelId, maxAttempts, onSolve }: <span class="t">Props</span>) {
+  <span class="k">const</span> { theme }  = <span class="fn">useDepth</span>()
+  <span class="k">const</span> [value,    <span class="fn">setValue</span>]    = <span class="fn">useState</span>(<span class="s">''</span>)
+  <span class="k">const</span> [state,    <span class="fn">setState</span>]    = <span class="fn">useState</span>&lt;<span class="t">InputState</span>&gt;(<span class="s">'idle'</span>)
+  <span class="k">const</span> [feedback, <span class="fn">setFeedback</span>] = <span class="fn">useState</span>&lt;<span class="t">string</span> | <span class="k">null</span>&gt;(<span class="k">null</span>)
+  <span class="k">const</span> inputRef  = <span class="fn">useRef</span>&lt;<span class="t">HTMLInputElement</span>&gt;(<span class="k">null</span>)
+  <span class="k">const</span> { attempt, remaining } = <span class="fn">useAttempt</span>(puzzleId)
+
+  <span class="k">const</span> BORDER: <span class="t">Record</span>&lt;<span class="t">InputState</span>, <span class="t">string</span>&gt; = {
+    idle:       theme.<span class="prop">border</span>,
+    typing:     theme.<span class="prop">accent</span> + <span class="s">'80'</span>,
+    submitting: theme.<span class="prop">accent</span> + <span class="s">'60'</span>,
+    correct:    <span class="s">'#059669'</span>,
+    wrong:      <span class="s">'#dc2626'</span>,
+    locked:     theme.<span class="prop">border</span>,
+  }
+
+  <span class="k">const</span> SHADOW: <span class="t">Record</span>&lt;<span class="t">InputState</span>, <span class="t">string</span>&gt; = {
+    idle:       <span class="s">'none'</span>,
+    typing:     `0 0 0 1px ${theme.<span class="prop">accent</span>}40, 0 0 20px ${theme.<span class="prop">accent</span>}18`,
+    submitting: `0 0 0 1px ${theme.<span class="prop">accent</span>}60`,
+    correct:    <span class="s">'0 0 0 2px #059669, 0 0 30px #05966940'</span>,
+    wrong:      <span class="s">'0 0 0 2px #dc2626, 0 0 20px #dc262640'</span>,
+    locked:     <span class="s">'none'</span>,
+  }
+
+  <span class="k">const</span> <span class="fn">handleSubmit</span> = <span class="fn">useCallback</span>(<span class="k">async</span> () =&gt; {
+    <span class="k">if</span> (!value.<span class="fn">trim</span>() || state === <span class="s">'submitting'</span> || state === <span class="s">'locked'</span>) <span class="k">return</span>
+    <span class="fn">setState</span>(<span class="s">'submitting'</span>)
+
+    <span class="k">const</span> result = <span class="k">await</span> <span class="fn">attempt</span>(value.<span class="fn">trim</span>(), levelId)
+
+    <span class="k">if</span> (result.<span class="prop">status</span> === <span class="s">'correct'</span>) {
+      <span class="fn">setState</span>(<span class="s">'correct'</span>)
+      <span class="fn">setFeedback</span>(result.<span class="prop">message</span> ?? <span class="s">'Correct.'</span>)
+      <span class="fn">setTimeout</span>(() =&gt; <span class="fn">onSolve</span>(result), <span class="num">800</span>)
+
+    } <span class="k">else if</span> (result.<span class="prop">status</span> === <span class="s">'out_of_attempts'</span>) {
+      <span class="fn">setState</span>(<span class="s">'locked'</span>)
+      <span class="fn">setFeedback</span>(<span class="s">'No more attempts. This level is sealed.'</span>)
+
+    } <span class="k">else</span> {
+      <span class="fn">setState</span>(<span class="s">'wrong'</span>)
+      <span class="fn">setFeedback</span>(result.<span class="prop">message</span> ?? <span class="s">"That's not it."</span>)
+      <span class="c">// Web Animations API shake — no Tailwind animate- class needed</span>
+      inputRef.<span class="prop">current</span>?.<span class="fn">animate</span>([
+        { transform: <span class="s">'translateX(0)'</span>  },
+        { transform: <span class="s">'translateX(-8px)'</span> },
+        { transform: <span class="s">'translateX(8px)'</span>  },
+        { transform: <span class="s">'translateX(-5px)'</span> },
+        { transform: <span class="s">'translateX(5px)'</span>  },
+        { transform: <span class="s">'translateX(0)'</span>  },
+      ], { duration: <span class="num">360</span>, easing: <span class="s">'ease-out'</span> })
+      <span class="fn">setTimeout</span>(() =&gt; { <span class="fn">setState</span>(<span class="s">'idle'</span>); <span class="fn">setFeedback</span>(<span class="k">null</span>) }, <span class="num">2200</span>)
+    }
+    <span class="fn">setValue</span>(<span class="s">''</span>)
+  }, [value, state, attempt, levelId, onSolve])
+
+  <span class="k">const</span> isLocked  = state === <span class="s">'locked'</span> || remaining === <span class="num">0</span>
+  <span class="k">const</span> isCorrect = state === <span class="s">'correct'</span>
+
+  <span class="k">return</span> (
+    &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"d-surface"</span> <span class="prop">style</span>={{ padding: <span class="num">20</span>, borderRadius: <span class="num">4</span> }}&gt;
+
+      {maxAttempts !== <span class="k">null</span> &amp;&amp; (
+        &lt;<span class="jsx">div</span> <span class="prop">style</span>={{
+          fontSize: <span class="num">10</span>, letterSpacing: <span class="num">3</span>, marginBottom: <span class="num">12</span>,
+          color: remaining &lt;= <span class="num">2</span> ? <span class="s">'#dc2626'</span> : theme.<span class="prop">textMuted</span>,
+        }}&gt;
+          {isLocked
+            ? <span class="s">'LOCKED — ATTEMPTS EXHAUSTED'</span>
+            : `${remaining} / ${maxAttempts} ATTEMPTS REMAINING`}
+        &lt;/<span class="jsx">div</span>&gt;
+      )}
+
+      &lt;<span class="jsx">div</span> <span class="prop">style</span>={{ display: <span class="s">'flex'</span>, gap: <span class="num">8</span> }}&gt;
+        &lt;<span class="jsx">input</span>
+          <span class="prop">ref</span>={inputRef}
+          <span class="prop">type</span>=<span class="s">"text"</span>
+          <span class="prop">value</span>={value}
+          <span class="prop">disabled</span>={isLocked || isCorrect}
+          <span class="prop">placeholder</span>={isLocked ? <span class="s">'██████████'</span> : <span class="s">'Enter your answer…'</span>}
+          <span class="prop">onChange</span>={e =&gt; { <span class="fn">setValue</span>(e.<span class="prop">target</span>.<span class="prop">value</span>); <span class="fn">setState</span>(<span class="s">'typing'</span>) }}
+          <span class="prop">onKeyDown</span>={e =&gt; e.<span class="prop">key</span> === <span class="s">'Enter'</span> &amp;&amp; <span class="fn">handleSubmit</span>()}
+          <span class="prop">style</span>={{
+            flex: <span class="num">1</span>, background: <span class="s">'transparent'</span>,
+            border: `1px solid ${BORDER[state]}`,
+            borderRadius: <span class="num">3</span>, padding: <span class="s">'10px 14px'</span>,
+            fontFamily: <span class="s">'var(--mono)'</span>, fontSize: <span class="num">13</span>,
+            color: isLocked ? theme.<span class="prop">textMuted</span> : theme.<span class="prop">text</span>,
+            outline: <span class="s">'none'</span>, boxShadow: SHADOW[state],
+            filter: isLocked ? `blur(${theme.<span class="prop">blurPx</span> / <span class="num">4</span>}px)` : <span class="s">'none'</span>,
+            transition: <span class="s">'border-color 0.2s, box-shadow 0.2s'</span>,
+          }}
+        /&gt;
+        &lt;<span class="jsx">button</span>
+          <span class="prop">onClick</span>={handleSubmit}
+          <span class="prop">disabled</span>={isLocked || isCorrect || !value.<span class="fn">trim</span>()}
+          <span class="prop">style</span>={{
+            padding: <span class="s">'10px 20px'</span>,
+            background: isCorrect ? <span class="s">'#059669'</span> : theme.<span class="prop">accent</span>,
+            border: <span class="s">'none'</span>, borderRadius: <span class="num">3</span>, color: <span class="s">'white'</span>,
+            fontFamily: <span class="s">'var(--mono)'</span>, fontSize: <span class="num">11</span>, letterSpacing: <span class="num">2</span>,
+            cursor: isLocked ? <span class="s">'not-allowed'</span> : <span class="s">'pointer'</span>,
+            opacity: isLocked ? <span class="num">0.4</span> : <span class="num">1</span>,
+            transition: <span class="s">'background 0.3s'</span>,
+          }}
+        &gt;
+          {state === <span class="s">'submitting'</span> ? <span class="s">'…'</span> : isCorrect ? <span class="s">'✓'</span> : <span class="s">'ENTER'</span>}
+        &lt;/<span class="jsx">button</span>&gt;
+      &lt;/<span class="jsx">div</span>&gt;
+
+      {feedback &amp;&amp; (
+        &lt;<span class="jsx">div</span> <span class="prop">style</span>={{
+          marginTop: <span class="num">10</span>, fontSize: <span class="num">11</span>, letterSpacing: <span class="num">1</span>,
+          color: isCorrect ? <span class="s">'#059669'</span> : isLocked ? theme.<span class="prop">textMuted</span> : <span class="s">'#dc2626'</span>,
+        }}&gt;
+          {feedback}
+        &lt;/<span class="jsx">div</span>&gt;
+      )}
+    &lt;/<span class="jsx">div</span>&gt;
+  )
+}</div>
+    </div>
+
+    <!-- ═════════════════════════════════
+         components/DepthMeter.tsx
+    ══════════════════════════════════ -->
+    <div class="code-pane" id="pane-depth-meter">
+      <div class="line-numbers" id="ln-depth-meter"></div>
+      <div class="code-content"><span class="c">// components/DepthMeter.tsx
+// ══════════════════════════════════════════════════════════
+// Vertical progress bar that shows how deep into the rabbit
+// hole you are. Fill colour and glow come from the depth theme,
+// so it visually shifts as you descend. Sits in the sidebar.
+// The fill uses cubic-bezier spring easing for a satisfying
+// "sinking" motion when a new level unlocks.
+// ══════════════════════════════════════════════════════════</span>
+
+<span class="s">'use client'</span>
+<span class="imp">import</span> { <span class="fn">useDepth</span> } <span class="imp">from</span> <span class="s">'./DepthShell'</span>
+
+<span class="k">interface</span> <span class="t">Props</span> {
+  <span class="prop">currentLevel</span>: <span class="t">number</span>
+  <span class="prop">totalLevels</span>:  <span class="t">number</span>
+}
+
+<span class="k">export default function</span> <span class="fn">DepthMeter</span>({ currentLevel, totalLevels }: <span class="t">Props</span>) {
+  <span class="k">const</span> { theme, depth } = <span class="fn">useDepth</span>()
+  <span class="k">const</span> pct = totalLevels &gt; <span class="num">1</span>
+    ? ((currentLevel - <span class="num">1</span>) / (totalLevels - <span class="num">1</span>)) * <span class="num">100</span>
+    : <span class="num">0</span>
+
+  <span class="k">return</span> (
+    &lt;<span class="jsx">div</span> <span class="prop">style</span>={{
+      display: <span class="s">'flex'</span>, flexDirection: <span class="s">'column'</span>,
+      alignItems: <span class="s">'center'</span>, gap: <span class="num">8</span>, padding: <span class="s">'16px 8px'</span>,
+    }}&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">style</span>={{ fontSize: <span class="num">9</span>, letterSpacing: <span class="num">3</span>, color: theme.<span class="prop">textMuted</span>, marginBottom: <span class="num">4</span> }}&gt;
+        DEPTH
+      &lt;/<span class="jsx">div</span>&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">style</span>={{  <span class="c">// track</span>
+        width: <span class="num">4</span>, height: <span class="num">140</span>, background: theme.<span class="prop">border</span>,
+        borderRadius: <span class="num">2</span>, position: <span class="s">'relative'</span>, overflow: <span class="s">'hidden'</span>,
+      }}&gt;
+        &lt;<span class="jsx">div</span> <span class="prop">style</span>={{  <span class="c">// fill — starts at bottom, climbs up</span>
+          position: <span class="s">'absolute'</span>, bottom: <span class="num">0</span>, left: <span class="num">0</span>, right: <span class="num">0</span>,
+          height: `${pct}%`,
+          background: theme.<span class="prop">accent</span>,
+          boxShadow:  `0 0 10px ${theme.<span class="prop">accent</span>}`,
+          borderRadius: <span class="num">2</span>,
+          transition: `height ${theme.<span class="prop">transitionMs</span>}ms cubic-bezier(0.34,1.56,0.64,1)`,
+        }} /&gt;
+      &lt;/<span class="jsx">div</span>&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">style</span>={{  <span class="c">// depth tier name, vertical</span>
+        fontSize: <span class="num">9</span>, letterSpacing: <span class="num">3</span>, color: theme.<span class="prop">textMuted</span>,
+        textTransform: <span class="s">'uppercase'</span>, writingMode: <span class="s">'vertical-rl'</span>,
+        textOrientation: <span class="s">'mixed'</span>, transform: <span class="s">'rotate(180deg)'</span>,
+        transition: `color ${theme.<span class="prop">transitionMs</span>}ms ease`,
+      }}&gt;
+        {theme.<span class="prop">name</span>}
+      &lt;/<span class="jsx">div</span>&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">style</span>={{  <span class="c">// level fraction</span>
+        fontSize: <span class="num">11</span>, fontWeight: <span class="num">600</span>,
+        color: theme.<span class="prop">accent</span>,
+        transition: `color ${theme.<span class="prop">transitionMs</span>}ms ease`,
+      }}&gt;
+        {currentLevel}/{totalLevels}
+      &lt;/<span class="jsx">div</span>&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">style</span>={{ display: <span class="s">'flex'</span>, flexDirection: <span class="s">'column'</span>, gap: <span class="num">4</span>, marginTop: <span class="num">4</span> }}&gt;
+        {<span class="t">Array</span>.<span class="fn">from</span>({ length: totalLevels }, (_, i) =&gt; (
+          &lt;<span class="jsx">div</span> <span class="prop">key</span>={i} <span class="prop">style</span>={{
+            width: <span class="num">6</span>, height: <span class="num">6</span>, borderRadius: <span class="s">'50%'</span>,
+            background: i &lt; currentLevel
+              ? theme.<span class="prop">accent</span>
+              : i === currentLevel - <span class="num">1</span>
+                ? theme.<span class="prop">accent</span>
+                : theme.<span class="prop">border</span>,
+            boxShadow: i === currentLevel - <span class="num">1</span>
+              ? `0 0 6px ${theme.<span class="prop">accent</span>}` : <span class="s">'none'</span>,
+            transition: `background ${theme.<span class="prop">transitionMs</span>}ms ease`,
+          }} /&gt;
+        ))}
+      &lt;/<span class="jsx">div</span>&gt;
+
+    &lt;/<span class="jsx">div</span>&gt;
+  )
+}</div>
+    </div>
+
+    <!-- ═════════════════════════════════
+         components/GlitchText.tsx
+    ══════════════════════════════════ -->
+    <div class="code-pane" id="pane-glitch-text">
+      <div class="line-numbers" id="ln-glitch-text"></div>
+      <div class="code-content"><span class="c">// components/GlitchText.tsx
+// ══════════════════════════════════════════════════════════
+// Depth-aware text glitch effect.
+// Depth 1-2:  no glitch.
+// Depth 3-4:  rare, subtle glitch.
+// Depth 5-6:  frequent, multi-colour horizontal slices.
+// Depth 7:    near-constant — text barely readable.
+// Uses two absolutely-positioned clone spans as layers,
+// driven by setInterval + the CSS @keyframes glitch-h/glitch-v
+// defined in globals.css. Interval comes from theme.glitchRate.
+// ══════════════════════════════════════════════════════════</span>
+
+<span class="s">'use client'</span>
+<span class="imp">import</span> { <span class="fn">useEffect</span>, <span class="fn">useRef</span>, <span class="fn">useId</span> } <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> { <span class="fn">useDepth</span> }                   <span class="imp">from</span> <span class="s">'./DepthShell'</span>
+
+<span class="k">interface</span> <span class="t">Props</span> {
+  <span class="prop">text</span>:       <span class="t">string</span>
+  <span class="prop">intensity</span>?: <span class="t">number</span>          <span class="c">// override — defaults to current depth</span>
+  <span class="prop">style</span>?:     <span class="t">React.CSSProperties</span>
+  <span class="prop">as</span>?:        <span class="k">keyof</span> <span class="t">JSX.IntrinsicElements</span>
+}
+
+<span class="k">export default function</span> <span class="fn">GlitchText</span>({ text, intensity, style, as: Tag = <span class="s">'span'</span> }: <span class="t">Props</span>) {
+  <span class="k">const</span> { theme, depth }  = <span class="fn">useDepth</span>()
+  <span class="k">const</span> effectiveDepth    = intensity ?? depth
+  <span class="k">const</span> layerA = <span class="fn">useRef</span>&lt;<span class="t">HTMLSpanElement</span>&gt;(<span class="k">null</span>)
+  <span class="k">const</span> layerB = <span class="fn">useRef</span>&lt;<span class="t">HTMLSpanElement</span>&gt;(<span class="k">null</span>)
+  <span class="k">const</span> timer  = <span class="fn">useRef</span>&lt;<span class="t">ReturnType</span>&lt;<span class="k">typeof</span> setInterval&gt;&gt;()
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="k">if</span> (effectiveDepth &lt; <span class="num">3</span> || theme.<span class="prop">glitchRate</span> === <span class="num">0</span>) <span class="k">return</span>
+
+    <span class="k">const</span> <span class="fn">fire</span> = () =&gt; {
+      <span class="k">const</span> a = layerA.<span class="prop">current</span>
+      <span class="k">const</span> b = layerB.<span class="prop">current</span>
+      <span class="k">if</span> (!a || !b) <span class="k">return</span>
+
+      <span class="k">const</span> reps = <span class="t">Math</span>.<span class="fn">ceil</span>(<span class="t">Math</span>.<span class="fn">random</span>() * <span class="num">3</span>)
+      a.<span class="prop">style</span>.<span class="prop">animation</span> = `glitch-h 0.18s steps(1) ${reps}`
+      b.<span class="prop">style</span>.<span class="prop">animation</span> = `glitch-v 0.14s steps(1) ${<span class="t">Math</span>.<span class="fn">ceil</span>(<span class="t">Math</span>.<span class="fn">random</span>() * <span class="num">2</span>)}`
+      a.<span class="prop">style</span>.<span class="prop">opacity</span>   = <span class="s">'1'</span>
+      b.<span class="prop">style</span>.<span class="prop">opacity</span>   = <span class="s">'0.8'</span>
+
+      <span class="fn">setTimeout</span>(() =&gt; {
+        <span class="k">if</span> (a) { a.<span class="prop">style</span>.<span class="prop">animation</span> = <span class="s">'none'</span>; a.<span class="prop">style</span>.<span class="prop">opacity</span> = <span class="s">'0'</span> }
+        <span class="k">if</span> (b) { b.<span class="prop">style</span>.<span class="prop">animation</span> = <span class="s">'none'</span>; b.<span class="prop">style</span>.<span class="prop">opacity</span> = <span class="s">'0'</span> }
+      }, <span class="num">320</span>)
+    }
+
+    <span class="c">// Jitter the interval so glitches feel organic, not mechanical</span>
+    <span class="k">const</span> <span class="fn">schedule</span> = () =&gt; {
+      timer.<span class="prop">current</span> = <span class="fn">setTimeout</span>(() =&gt; {
+        <span class="fn">fire</span>()
+        <span class="fn">schedule</span>()
+      }, theme.<span class="prop">glitchRate</span> + (<span class="t">Math</span>.<span class="fn">random</span>() - <span class="num">0.5</span>) * theme.<span class="prop">glitchRate</span> * <span class="num">0.8</span>) <span class="k">as</span> <span class="k">any</span>
+    }
+
+    <span class="fn">schedule</span>()
+    <span class="k">return</span> () =&gt; <span class="fn">clearTimeout</span>(timer.<span class="prop">current</span>)
+  }, [effectiveDepth, theme])
+
+  <span class="k">return</span> (
+    &lt;<span class="t">Tag</span> <span class="prop">style</span>={{ position: <span class="s">'relative'</span>, display: <span class="s">'inline-block'</span>, ...style }}&gt;
+
+      &lt;<span class="jsx">span</span>  <span class="c">// glitch layer A — accent coloured</span>
+        <span class="prop">ref</span>={layerA} <span class="prop">aria-hidden</span>
+        <span class="prop">style</span>={{ position: <span class="s">'absolute'</span>, inset: <span class="num">0</span>, color: theme.<span class="prop">accent</span>, opacity: <span class="num">0</span> }}
+      &gt;{text}&lt;/<span class="jsx">span</span>&gt;
+
+      &lt;<span class="jsx">span</span>&gt;{text}&lt;/<span class="jsx">span</span>&gt;  <span class="c">// main readable layer</span>
+
+      &lt;<span class="jsx">span</span>  <span class="c">// glitch layer B — red offset</span>
+        <span class="prop">ref</span>={layerB} <span class="prop">aria-hidden</span>
+        <span class="prop">style</span>={{
+          position: <span class="s">'absolute'</span>, inset: <span class="num">0</span>, opacity: <span class="num">0</span>,
+          color: <span class="s">'#dc2626'</span>, transform: <span class="s">'translateX(2px)'</span>,
+        }}
+      &gt;{text}&lt;/<span class="jsx">span</span>&gt;
+
+    &lt;/<span class="t">Tag</span>&gt;
+  )
+}</div>
+    </div>
+
+  </div><!-- end editor-area -->
+
+  <!-- ══ EXPLAIN PANEL ══ -->
+  <div class="explain-panel">
+    <div class="explain-header">
+      <span>Design Notes</span>
+      <span id="current-file" style="color:var(--accent2);font-size:9px">depth-theme.ts</span>
+    </div>
+    <div class="explain-body">
+
+      <!-- depth-theme -->
+      <div class="explain-section active" id="notes-depth-theme">
+        <div class="explain-title">The Depth Theme System</div>
+        <p class="explain-p">Seven depth tiers, each a complete design token set. The key insight: colour alone isn't enough. The visual identity at each level is a combination of palette shift, grain opacity, vignette strength, typography weight, and scanline presence.</p>
+
+        <table class="depth-table">
+          <tr><th>#</th><th>Name</th><th>Accent</th><th>Noise</th><th>Glitch</th></tr>
+          <tr><td>1</td><td>Surface</td><td><span class="depth-swatch" style="background:#6d28d9"></span>violet</td><td>2%</td><td>off</td></tr>
+          <tr><td>2</td><td>Shallow</td><td><span class="depth-swatch" style="background:#5b21b6"></span>indigo</td><td>5%</td><td>off</td></tr>
+          <tr><td>3</td><td>Murky</td><td><span class="depth-swatch" style="background:#0891b2"></span>cyan</td><td>9%</td><td>30s</td></tr>
+          <tr><td>4</td><td>Deep</td><td><span class="depth-swatch" style="background:#0e7490"></span>teal</td><td>14%</td><td>15s</td></tr>
+          <tr><td>5</td><td>Abyss</td><td><span class="depth-swatch" style="background:#b45309"></span>amber</td><td>20%</td><td>8s</td></tr>
+          <tr><td>6</td><td>Void</td><td><span class="depth-swatch" style="background:#991b1b"></span>red</td><td>28%</td><td>4s</td></tr>
+          <tr><td>7</td><td>Bottom</td><td><span class="depth-swatch" style="background:#7f1d1d"></span>blood</td><td>38%</td><td>2s</td></tr>
+        </table>
+
+        <div class="explain-depth">The accent colour arc is intentional: violet (safe, familiar) → cyan (strange) → amber (warning) → red (danger). Users feel the shift even before they consciously notice it.</div>
+        <div class="explain-good">✓ <code style="color:var(--green)">depthToCSSVars()</code> converts a theme object to CSS custom properties. This is the only bridge between TypeScript config and CSS — one call, 12 variables, everything downstream uses <code style="color:var(--green)">var(--d-*)</code>.</div>
+        <div class="explain-note">Depth is clamped to 1–7 by <code style="color:var(--accent2)">getDepthTheme()</code>. A thread with 12 levels uses tiers 1, 2, 3… then the final levels all share tier 7. The bottom is the bottom.</div>
+      </div>
+
+      <!-- globals.css -->
+      <div class="explain-section" id="notes-globals">
+        <div class="explain-title">Depth-Aware Global CSS</div>
+        <p class="explain-p">The CSS file defines <em>structure</em> — the <code style="color:var(--accent2)">body</code>, utility classes, keyframes — but never hardcodes colours. Every colour reference is <code style="color:var(--accent2)">var(--d-*)</code>, which DepthShell swaps at runtime.</p>
+        <div class="explain-depth">The <code style="color:var(--accent2)">.pip</code> strip encodes all solve state in CSS: <code style="color:var(--accent2)">.solved</code>, <code style="color:var(--accent2)">.current</code>, <code style="color:var(--accent2)">.locked</code>. The glow on <code style="color:var(--accent2)">.current</code> uses <code style="color:var(--accent2)">pip-pulse</code> — an alternating keyframe that breathes with the page's ambient atmosphere.</div>
+        <div class="explain-note">The <code style="color:var(--accent2)">.locked-content</code> class uses <code style="color:var(--accent2)">filter: blur(var(--d-blur))</code>. At depth 7 that's 40px — text is completely illegible. This is the "spoiler gate" for level content a user hasn't unlocked yet.</div>
+        <div class="explain-good">✓ The shake animation uses <code style="color:var(--green)">translateX</code> only, not <code style="color:var(--green)">margin</code>. This keeps the layout stable (no reflow) and runs on the compositor thread for guaranteed 60fps even on wrong answers.</div>
+      </div>
+
+      <!-- DepthShell -->
+      <div class="explain-section" id="notes-depth-shell">
+        <div class="explain-title">DepthShell — Context + Injector</div>
+        <p class="explain-p">The shell does two things: provides a React context so child components can read the current theme without prop-drilling, and injects CSS custom properties directly on the DOM node so CSS rules work without JSX logic.</p>
+        <div class="explain-depth">Why not put the CSS vars on <code style="color:var(--accent2)">:root</code>? Because a user could have two holes open in different tabs — or you might render a preview alongside live content. Scoping to the shell div means the variables don't leak globally.</div>
+        <div class="explain-note">The three atmospheric overlays — noise, scanlines, vignette — are <code style="color:var(--accent2)">position:fixed</code> with <code style="color:var(--accent2)">pointer-events:none</code>. They cover the entire viewport but never intercept clicks, scrolls, or keyboard events.</div>
+        <div class="explain-warn">⚠️ Scanlines only activate at depth ≥ 4. Adding them at depth 1 would immediately signal "something is wrong" — and at the surface, nothing is wrong yet.</div>
+        <div class="explain-good">✓ The vignette hex alpha is computed from <code style="color:var(--green)">vignetteStr</code>: <code style="color:var(--green)">Math.round(strength * 255).toString(16)</code>. At depth 7, strength = 0.95 → alpha = <code style="color:var(--green)">f2</code> — the edges are nearly black.</div>
+      </div>
+
+      <!-- AtmosphericBg -->
+      <div class="explain-section" id="notes-atmospheric-bg">
+        <div class="explain-title">AtmosphericBg — Canvas Background</div>
+        <p class="explain-p">A 2D canvas renders slowly orbiting radial blobs tinted with the depth accent colour. The blob count equals the depth level — at depth 7 you have 7 overlapping blobs filling the void.</p>
+        <div class="explain-depth">FPS is deliberately capped at 12 via <code style="color:var(--accent2)">lastRef</code> timestamp gating. At 60fps the background would feel like a normal animation. At 12fps it feels like degraded footage — a signal fighting to come through.</div>
+        <div class="explain-note">The canvas sits at <code style="color:var(--accent2)">z-index:0</code>, below the noise overlay (z:1), scanlines (z:2), and vignette (z:3). All content is at z-index 4+. The layers stack: canvas → noise → scanlines → vignette → content.</div>
+        <div class="explain-good">✓ <code style="color:var(--green)">cancelAnimationFrame</code> is called in the useEffect cleanup. Without this, every time <code style="color:var(--green)">depth</code> changes (which re-runs the effect), you'd leak a running animation loop.</div>
+      </div>
+
+      <!-- LevelTransition -->
+      <div class="explain-section" id="notes-level-transition">
+        <div class="explain-title">LevelTransition — The Solve Moment</div>
+        <p class="explain-p">The transition is the payoff. Three timed phases: <strong style="color:var(--text)">in</strong> (fade up from 0 opacity), <strong style="color:var(--text)">hold</strong> (show XP + message, 60% of total duration), <strong style="color:var(--text)">out</strong> (fade away, onDone fires).</p>
+        <div class="explain-depth">Duration scales with depth via <code style="color:var(--accent2)">theme.transitionMs</code>. At depth 1 it's 600ms — crisp. At depth 7 it's 2600ms — a slow, deliberate sinking. The descent itself feels heavier the deeper you go.</div>
+        <div class="explain-note">The XP number uses a spring-in animation (<code style="color:var(--accent2)">translateY(20px) → translateY(0)</code>) that fires 80ms after the overlay becomes visible. This slight delay makes it feel like the number "arrives" rather than just appearing.</div>
+        <div class="explain-good">✓ <code style="color:var(--green)">GlitchText</code> is used for the atmospheric message. At depth 7 the message "There is no coming back." glitches continuously during the hold phase — fitting punctuation for the bottom of the hole.</div>
+      </div>
+
+      <!-- PuzzleInput -->
+      <div class="explain-section" id="notes-puzzle-input">
+        <div class="explain-title">PuzzleInput — The Answer Box</div>
+        <p class="explain-p">Every colour state (border, glow) pulls from the depth theme. At depth 1, a correct answer glows violet. At depth 5, it glows amber. The input's feedback palette shifts with the environment.</p>
+        <div class="explain-depth">The shake animation uses the <strong style="color:var(--text)">Web Animations API</strong> (<code style="color:var(--accent2)">element.animate()</code>) rather than a CSS class toggle. This avoids the flash-of-wrong-class that can occur when React re-renders during the animation, and gives precise programmatic control.</div>
+        <div class="explain-warn">⚠️ A locked input shows <code style="color:var(--red)">'██████████'</code> as placeholder. Combined with <code style="color:var(--red)">filter:blur()</code> on the input itself, this communicates "sealed" without needing a separate locked-state component.</div>
+        <div class="explain-note">Attempt count is tracked server-side (via the <code style="color:var(--accent2)">useAttempt</code> hook hitting the API). The UI uses <code style="color:var(--accent2)">remaining</code> from the hook to drive the counter display — never trust the client count alone.</div>
+      </div>
+
+      <!-- DepthMeter -->
+      <div class="explain-section" id="notes-depth-meter">
+        <div class="explain-title">DepthMeter — The Descent Gauge</div>
+        <p class="explain-p">A vertical fill bar with dot indicators per level. The fill uses a spring cubic-bezier (<code style="color:var(--accent2)">0.34,1.56,0.64,1</code>) so it slightly overshoots on descent — a tiny bounce that makes progress feel physical.</p>
+        <div class="explain-depth">The depth tier name is rendered vertically via <code style="color:var(--accent2)">writing-mode:vertical-rl</code> + <code style="color:var(--accent2)">rotate(180deg)</code>. It updates with the theme transition so "Surface" fades to "Murky" smoothly as the depth variable changes.</div>
+        <div class="explain-good">✓ The component is purely presentational — it reads from <code style="color:var(--green)">useDepth()</code> and props only. No API calls, no side effects. Safe to render anywhere without worrying about data fetching.</div>
+      </div>
+
+      <!-- GlitchText -->
+      <div class="explain-section" id="notes-glitch-text">
+        <div class="explain-title">GlitchText — Degraded Signal</div>
+        <p class="explain-p">Three layers: a red-offset clone (back), the real text (middle), an accent-coloured clone (front). The clones are opacity:0 at rest. The interval fires <code style="color:var(--accent2)">glitch-h</code> on one and <code style="color:var(--accent2)">glitch-v</code> on the other, then resets after 320ms.</p>
+        <div class="explain-depth">The interval is jittered: <code style="color:var(--accent2)">glitchRate ± 40%</code>. A perfectly regular glitch reads as intentional — a designed animation. Random intervals make it feel like signal corruption, which is the point.</div>
+        <div class="explain-note">The <code style="color:var(--accent2)">as</code> prop defaults to <code style="color:var(--accent2)">'span'</code> but accepts any HTML tag. Use <code style="color:var(--accent2)">&lt;GlitchText as="h1"&gt;</code> for the thread title to apply the effect to a block-level element without breaking semantic HTML.</div>
+        <div class="explain-good">✓ Both clone spans have <code style="color:var(--green)">aria-hidden</code>. Screen readers see only the main text layer — the glitch is purely cosmetic and doesn't affect accessibility.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<div class="statusbar">
+  <div class="status-item">🔵 Phase 4 Complete</div>
+  <div class="status-item">8 files</div>
+  <div class="status-item">TypeScript · TSX · CSS</div>
+  <div class="status-item" style="margin-left:auto">Canvas API · Web Animations API · CSS Custom Properties</div>
+</div>
+
+<script>
+const fileMap = {
+  'depth-theme':      { tab: 'lib/depth-theme.ts',               notes: 'depth-theme' },
+  'globals':          { tab: 'styles/globals.css',                notes: 'globals' },
+  'depth-shell':      { tab: 'components/DepthShell.tsx',         notes: 'depth-shell' },
+  'atmospheric-bg':   { tab: 'components/AtmosphericBg.tsx',      notes: 'atmospheric-bg' },
+  'level-transition': { tab: 'components/LevelTransition.tsx',    notes: 'level-transition' },
+  'puzzle-input':     { tab: 'components/PuzzleInput.tsx',        notes: 'puzzle-input' },
+  'depth-meter':      { tab: 'components/DepthMeter.tsx',         notes: 'depth-meter' },
+  'glitch-text':      { tab: 'components/GlitchText.tsx',         notes: 'glitch-text' },
+}
+
+let currentFile = 'depth-theme'
+const openTabs = new Set(['depth-theme'])
+
+function openFile(name) {
+  document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.tree-file').forEach(f => f.classList.remove('active'))
+  document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'))
+  document.querySelectorAll('.explain-section').forEach(s => s.classList.remove('active'))
+
+  if (!openTabs.has(name)) {
+    openTabs.add(name)
+    const tab = document.createElement('div')
+    tab.className = 'code-tab'
+    tab.id = `tab-${name}`
+    tab.innerHTML = `<span style="color:var(--accent2)">◆</span> ${fileMap[name].tab}`
+    tab.onclick = () => openFile(name)
+    document.getElementById('tabs-bar').appendChild(tab)
+  }
+
+  currentFile = name
+  document.getElementById(`pane-${name}`)?.classList.add('active')
+  document.getElementById(`file-${name}`)?.classList.add('active')
+  document.getElementById(`tab-${name}`)?.classList.add('active')
+  document.getElementById(`notes-${fileMap[name].notes}`)?.classList.add('active')
+  document.getElementById('current-file').textContent = fileMap[name].tab
+
+  generateLineNumbers(name)
+}
+
+function generateLineNumbers(name) {
+  const pane    = document.getElementById(`pane-${name}`)
+  const content = pane?.querySelector('.code-content')
+  const ln      = document.getElementById(`ln-${name}`)
+  if (!content || !ln || ln.children.length > 0) return
+  const lines = content.innerHTML.split('\n').length
+  ln.innerHTML = Array.from({ length: lines }, (_, i) => `<span>${i + 1}</span>`).join('')
+}
+
+openFile('depth-theme')
+</script>
+</body>
+</html>

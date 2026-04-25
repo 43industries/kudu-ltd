@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rabbit Hole — Phase 3 Frontend</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Clash+Display:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #06060f;
+    --surface: #0c0c1a;
+    --surface2: #11112a;
+    --surface3: #161630;
+    --border: #1a1a3a;
+    --border2: #242448;
+    --accent: #6d28d9;
+    --accent2: #0891b2;
+    --accent3: #d97706;
+    --green: #059669;
+    --red: #dc2626;
+    --text: #e2e8f0;
+    --muted: #4a5568;
+    --muted2: #718096;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Clash Display', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    height: 48px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+    gap: 20px;
+  }
+
+  .logo {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+    animation: breathe 3s ease-in-out infinite;
+  }
+
+  @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .phase-badge {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--green);
+    border: 1px solid rgba(5,150,105,0.3);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .topbar-right { margin-left: auto; font-size: 11px; color: var(--muted); }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 12px 16px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+  }
+
+  .tree { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .tree::-webkit-scrollbar { width: 4px; }
+  .tree::-webkit-scrollbar-track { background: transparent; }
+  .tree::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .tree-group { margin-bottom: 4px; }
+
+  .tree-folder {
+    padding: 6px 16px;
+    font-size: 11px;
+    color: var(--muted2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: default;
+  }
+
+  .tree-file {
+    padding: 6px 16px 6px 32px;
+    font-size: 11px;
+    color: var(--muted2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s, color 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  .tree-file:hover { background: var(--surface2); color: var(--text); }
+  .tree-file.active { background: var(--surface2); color: var(--text); border-left-color: var(--green); }
+
+  .file-ext { font-size: 9px; padding: 1px 5px; border-radius: 2px; margin-left: auto; }
+  .ext-tsx  { background: rgba(5,150,105,0.15); color: var(--green); }
+  .ext-ts   { background: rgba(8,145,178,0.15);  color: var(--accent2); }
+  .ext-js   { background: rgba(217,119,6,0.15);  color: var(--accent3); }
+
+  .tabs-bar {
+    display: flex;
+    align-items: center;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    flex-shrink: 0;
+    min-height: 38px;
+  }
+
+  .tabs-bar::-webkit-scrollbar { height: 2px; }
+  .tabs-bar::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  .code-tab {
+    padding: 0 16px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    border-right: 1px solid var(--border);
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .code-tab:hover { background: var(--surface2); color: var(--text); }
+  .code-tab.active { background: var(--bg); color: var(--text); border-bottom: 1px solid var(--bg); margin-bottom: -1px; }
+
+  .editor-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
+  .code-pane { display: none; flex: 1; overflow-y: auto; position: relative; }
+  .code-pane.active { display: flex; }
+  .code-pane::-webkit-scrollbar { width: 6px; }
+  .code-pane::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  .line-numbers {
+    padding: 20px 0;
+    min-width: 52px;
+    text-align: right;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted);
+    border-right: 1px solid var(--border);
+    user-select: none;
+    padding-right: 16px;
+    flex-shrink: 0;
+  }
+
+  .line-numbers span { display: block; }
+
+  .code-content {
+    flex: 1;
+    padding: 20px 24px;
+    font-size: 12.5px;
+    line-height: 1.7;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .k   { color: #c084fc; }
+  .t   { color: #67e8f9; }
+  .s   { color: #fbbf24; }
+  .c   { color: #374151; }
+  .fn  { color: #34d399; }
+  .prop{ color: #93c5fd; }
+  .num { color: #fb923c; }
+  .dec { color: #f472b6; }
+  .op  { color: #94a3b8; }
+  .imp { color: #a5b4fc; }
+  .jsx { color: #f9a8d4; }
+
+  .statusbar {
+    height: 24px;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-size: 10px;
+    gap: 20px;
+    color: rgba(255,255,255,0.9);
+    flex-shrink: 0;
+  }
+
+  .status-item { display: flex; align-items: center; gap: 5px; }
+
+  .explain-panel {
+    width: 300px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .explain-header {
+    padding: 12px 16px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .explain-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--muted2);
+  }
+
+  .explain-body::-webkit-scrollbar { width: 4px; }
+  .explain-body::-webkit-scrollbar-thumb { background: var(--border2); }
+
+  .explain-section { display: none; }
+  .explain-section.active { display: block; }
+
+  .explain-title {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  .explain-p { margin-bottom: 12px; }
+
+  .explain-note {
+    background: var(--surface2);
+    border-left: 2px solid var(--accent);
+    padding: 10px 12px;
+    margin: 12px 0;
+    font-size: 11px;
+    color: var(--muted2);
+    line-height: 1.7;
+  }
+
+  .explain-warn {
+    background: rgba(220,38,38,0.05);
+    border-left: 2px solid var(--red);
+    padding: 10px 12px;
+    margin: 12px 0;
+    font-size: 11px;
+    color: var(--muted2);
+  }
+
+  .explain-good {
+    background: rgba(5,150,105,0.05);
+    border-left: 2px solid var(--green);
+    padding: 10px 12px;
+    margin: 12px 0;
+    font-size: 11px;
+    color: var(--muted2);
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin: 2px;
+  }
+
+  .tag-blue   { background: rgba(8,145,178,0.15);  color: var(--accent2); }
+  .tag-purple { background: rgba(109,40,217,0.15); color: var(--accent); }
+  .tag-amber  { background: rgba(217,119,6,0.15);  color: var(--accent3); }
+  .tag-green  { background: rgba(5,150,105,0.15);  color: var(--green); }
+
+  @media (max-width: 900px) {
+    .explain-panel { display: none; }
+    .sidebar { width: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><div class="logo-dot"></div> rabbit-hole</div>
+  <div class="phase-badge">PHASE 3 · FRONTEND</div>
+  <div class="topbar-right">TypeScript · Next.js · SWR · Tailwind CSS</div>
+</div>
+
+<div class="main">
+
+  <!-- FILE TREE -->
+  <div class="sidebar">
+    <div class="sidebar-header">Explorer</div>
+    <div class="tree">
+
+      <div class="tree-group">
+        <div class="tree-folder">📁 pages</div>
+        <div class="tree-file active" onclick="openFile('nextauth')" id="file-nextauth" style="padding-left:48px">
+          <span>[...nextauth].ts</span>
+          <span class="file-ext ext-ts">ts</span>
+        </div>
+        <div class="tree-file" onclick="openFile('feed')" id="file-feed" style="padding-left:32px">
+          <span>index.tsx</span>
+          <span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-folder" style="padding-left:32px">📁 hole</div>
+        <div class="tree-file" onclick="openFile('hole-page')" id="file-hole-page" style="padding-left:48px">
+          <span>[slug].tsx</span>
+          <span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-folder" style="padding-left:32px">📁 profile</div>
+        <div class="tree-file" onclick="openFile('profile')" id="file-profile" style="padding-left:48px">
+          <span>[username].tsx</span>
+          <span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-folder" style="padding-left:32px">📁 create</div>
+        <div class="tree-file" onclick="openFile('create')" id="file-create" style="padding-left:48px">
+          <span>index.tsx</span>
+          <span class="file-ext ext-tsx">tsx</span>
+        </div>
+      </div>
+
+      <div class="tree-group">
+        <div class="tree-folder">📁 components</div>
+        <div class="tree-file" onclick="openFile('navbar')" id="file-navbar" style="padding-left:32px">
+          <span>NavBar.tsx</span>
+          <span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-file" onclick="openFile('thread-card')" id="file-thread-card" style="padding-left:32px">
+          <span>ThreadCard.tsx</span>
+          <span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-file" onclick="openFile('puzzle-box')" id="file-puzzle-box" style="padding-left:32px">
+          <span>PuzzleBox.tsx</span>
+          <span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-file" onclick="openFile('level-content')" id="file-level-content" style="padding-left:32px">
+          <span>LevelContent.tsx</span>
+          <span class="file-ext ext-tsx">tsx</span>
+        </div>
+        <div class="tree-file" onclick="openFile('xp-toast')" id="file-xp-toast" style="padding-left:32px">
+          <span>XPToast.tsx</span>
+          <span class="file-ext ext-tsx">tsx</span>
+        </div>
+      </div>
+
+      <div class="tree-group">
+        <div class="tree-folder">📁 hooks</div>
+        <div class="tree-file" onclick="openFile('use-attempt')" id="file-use-attempt" style="padding-left:32px">
+          <span>useAttempt.ts</span>
+          <span class="file-ext ext-ts">ts</span>
+        </div>
+      </div>
+
+      <div class="tree-group">
+        <div class="tree-file" onclick="openFile('middleware')" id="file-middleware">
+          <span>middleware.ts</span>
+          <span class="file-ext ext-ts">ts</span>
+        </div>
+        <div class="tree-file" onclick="openFile('next-config')" id="file-next-config">
+          <span>next.config.js</span>
+          <span class="file-ext ext-js">js</span>
+        </div>
+        <div class="tree-file" onclick="openFile('tailwind')" id="file-tailwind">
+          <span>tailwind.config.ts</span>
+          <span class="file-ext ext-ts">ts</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- EDITOR -->
+  <div class="editor-area">
+    <div class="tabs-bar" id="tabs-bar">
+      <div class="code-tab active" id="tab-nextauth" onclick="openFile('nextauth')">
+        <span style="color:var(--green)">◆</span> [...nextauth].ts
+      </div>
+    </div>
+
+    <!-- ===== CODE PANES ===== -->
+
+    <!-- [...nextauth].ts -->
+    <div class="code-pane active" id="pane-nextauth">
+      <div class="line-numbers" id="ln-nextauth"></div>
+      <div class="code-content"><span class="c">// pages/api/auth/[...nextauth].ts
+// NextAuth configuration — providers, Prisma adapter, session callbacks.
+// authOptions is exported so getServerSession() can reuse it in any route.</span>
+
+<span class="imp">import</span> <span class="t">NextAuth</span>, { <span class="k">type</span> <span class="t">AuthOptions</span> } <span class="imp">from</span> <span class="s">'next-auth'</span>
+<span class="imp">import</span> <span class="t">GithubProvider</span>  <span class="imp">from</span> <span class="s">'next-auth/providers/github'</span>
+<span class="imp">import</span> <span class="t">GoogleProvider</span>  <span class="imp">from</span> <span class="s">'next-auth/providers/google'</span>
+<span class="imp">import</span> { <span class="t">PrismaAdapter</span> } <span class="imp">from</span> <span class="s">'@auth/prisma-adapter'</span>
+<span class="imp">import</span> { prisma }        <span class="imp">from</span> <span class="s">'@/lib/prisma'</span>
+
+<span class="k">export const</span> <span class="prop">authOptions</span>: <span class="t">AuthOptions</span> = {
+  <span class="prop">adapter</span>: <span class="fn">PrismaAdapter</span>(prisma),
+
+  <span class="prop">providers</span>: [
+    <span class="fn">GithubProvider</span>({
+      <span class="prop">clientId</span>:     process.<span class="prop">env</span>.<span class="prop">GITHUB_CLIENT_ID</span>!,
+      <span class="prop">clientSecret</span>: process.<span class="prop">env</span>.<span class="prop">GITHUB_CLIENT_SECRET</span>!,
+    }),
+    <span class="fn">GoogleProvider</span>({
+      <span class="prop">clientId</span>:     process.<span class="prop">env</span>.<span class="prop">GOOGLE_CLIENT_ID</span>!,
+      <span class="prop">clientSecret</span>: process.<span class="prop">env</span>.<span class="prop">GOOGLE_CLIENT_SECRET</span>!,
+    }),
+  ],
+
+  <span class="prop">session</span>: {
+    <span class="c">// Sessions stored in the DB (via Prisma adapter), not as JWTs.
+    // This lets us revoke sessions server-side if needed.</span>
+    <span class="prop">strategy</span>: <span class="s">'database'</span>,
+  },
+
+  <span class="prop">callbacks</span>: {
+    <span class="c">// Attach user.id to every session object.
+    // Without this, session.user only has email/name/image from OAuth.</span>
+    <span class="k">async</span> <span class="fn">session</span>({ session, user }) {
+      <span class="k">if</span> (session.<span class="prop">user</span>) {
+        session.<span class="prop">user</span>.<span class="prop">id</span> = user.<span class="prop">id</span>
+      }
+      <span class="k">return</span> session
+    },
+
+    <span class="c">// Auto-generate a username on first OAuth sign-in.
+    // Subsequent sign-ins skip this — username already exists.</span>
+    <span class="k">async</span> <span class="fn">signIn</span>({ user }) {
+      <span class="k">if</span> (!user.<span class="prop">email</span>) <span class="k">return false</span>
+
+      <span class="k">const</span> <span class="prop">existing</span> = <span class="k">await</span> prisma.<span class="prop">user</span>.<span class="fn">findUnique</span>({
+        <span class="prop">where</span>:  { <span class="prop">email</span>: user.<span class="prop">email</span> },
+        <span class="prop">select</span>: { <span class="prop">username</span>: <span class="k">true</span> },
+      })
+
+      <span class="k">if</span> (!existing?.<span class="prop">username</span>) {
+        <span class="c">// Build from display name → strip non-alphanum → suffix with 4 random digits</span>
+        <span class="k">const</span> <span class="prop">base</span> = (user.<span class="prop">name</span> ?? user.<span class="prop">email</span>.<span class="fn">split</span>(<span class="s">'@'</span>)[<span class="num">0</span>])
+          .<span class="fn">toLowerCase</span>()
+          .<span class="fn">replace</span>(/[^a-z0-9]/g, <span class="s">''</span>)
+          .<span class="fn">slice</span>(<span class="num">0</span>, <span class="num">15</span>)
+
+        <span class="k">const</span> <span class="prop">username</span> = `${base}${<span class="fn">Math</span>.<span class="fn">floor</span>(<span class="fn">Math</span>.<span class="fn">random</span>() * <span class="num">9000</span>) + <span class="num">1000</span>}`
+
+        <span class="k">await</span> prisma.<span class="prop">user</span>.<span class="fn">update</span>({
+          <span class="prop">where</span>: { <span class="prop">email</span>: user.<span class="prop">email</span> },
+          <span class="prop">data</span>:  { username },
+        })
+      }
+
+      <span class="k">return true</span>
+    },
+  },
+
+  <span class="prop">pages</span>: {
+    <span class="prop">signIn</span>: <span class="s">'/auth/signin'</span>,
+    <span class="prop">error</span>:  <span class="s">'/auth/error'</span>,
+  },
+}
+
+<span class="k">export default</span> <span class="fn">NextAuth</span>(authOptions)</div>
+    </div>
+
+    <!-- pages/index.tsx -->
+    <div class="code-pane" id="pane-feed">
+      <div class="line-numbers" id="ln-feed"></div>
+      <div class="code-content"><span class="c">// pages/index.tsx
+// Main feed — server-side session check, client-side SWR feed.
+// Sort by hot / new / solved. Tag filtering. Paginated.</span>
+
+<span class="imp">import</span> { <span class="fn">useState</span> }              <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> <span class="fn">useSWR</span>                   <span class="imp">from</span> <span class="s">'swr'</span>
+<span class="imp">import</span> <span class="t">Link</span>                     <span class="imp">from</span> <span class="s">'next/link'</span>
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">GetServerSideProps</span> } <span class="imp">from</span> <span class="s">'next'</span>
+<span class="imp">import</span> { <span class="fn">getServerSession</span> }     <span class="imp">from</span> <span class="s">'next-auth/next'</span>
+<span class="imp">import</span> { authOptions }          <span class="imp">from</span> <span class="s">'./api/auth/[...nextauth]'</span>
+<span class="imp">import</span> <span class="t">ThreadCard</span>               <span class="imp">from</span> <span class="s">'@/components/ThreadCard'</span>
+<span class="imp">import</span> <span class="t">NavBar</span>                   <span class="imp">from</span> <span class="s">'@/components/NavBar'</span>
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">ThreadCard</span> <span class="k">as</span> <span class="t">TThread</span> } <span class="imp">from</span> <span class="s">'@/types'</span>
+
+<span class="k">type</span> <span class="t">Sort</span> = <span class="s">'hot'</span> | <span class="s">'new'</span> | <span class="s">'solved'</span>
+
+<span class="k">const</span> <span class="fn">fetcher</span> = (url: <span class="t">string</span>) =&gt; <span class="fn">fetch</span>(url).<span class="fn">then</span>(r =&gt; r.<span class="fn">json</span>())
+
+<span class="k">export default function</span> <span class="fn">FeedPage</span>() {
+  <span class="k">const</span> [sort, <span class="fn">setSort</span>] = <span class="fn">useState</span>&lt;<span class="t">Sort</span>&gt;(<span class="s">'hot'</span>)
+  <span class="k">const</span> [tag,  <span class="fn">setTag</span>]  = <span class="fn">useState</span>&lt;<span class="t">string</span> | <span class="k">null</span>&gt;(<span class="k">null</span>)
+  <span class="k">const</span> [page, <span class="fn">setPage</span>] = <span class="fn">useState</span>(<span class="num">1</span>)
+
+  <span class="k">const</span> { data, <span class="prop">isLoading</span> } = <span class="fn">useSWR</span>&lt;{
+    <span class="prop">threads</span>: <span class="t">TThread</span>[]
+    <span class="prop">pagination</span>: { <span class="prop">page</span>: <span class="t">number</span>; <span class="prop">pages</span>: <span class="t">number</span>; <span class="prop">total</span>: <span class="t">number</span> }
+  }&gt;(
+    `/api/threads?sort=${sort}&amp;page=${page}${tag ? `&amp;tag=${<span class="fn">encodeURIComponent</span>(tag)}` : <span class="s">''</span>}`,
+    fetcher,
+    { <span class="prop">keepPreviousData</span>: <span class="k">true</span> }
+  )
+
+  <span class="k">return</span> (
+    &lt;&gt;
+      &lt;<span class="t">NavBar</span> /&gt;
+      &lt;<span class="jsx">main</span> <span class="prop">className</span>=<span class="s">"feed-root"</span>&gt;
+
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"feed-hero"</span>&gt;
+          &lt;<span class="jsx">h1</span> <span class="prop">className</span>=<span class="s">"feed-title"</span>&gt;rabbit holes&lt;/<span class="jsx">h1</span>&gt;
+          &lt;<span class="jsx">p</span>  <span class="prop">className</span>=<span class="s">"feed-sub"</span>&gt;Descend. Solve. Surface (maybe).&lt;/<span class="jsx">p</span>&gt;
+          &lt;<span class="t">Link</span> <span class="prop">href</span>=<span class="s">"/create"</span> <span class="prop">className</span>=<span class="s">"btn-create"</span>&gt;+ dig a hole&lt;/<span class="t">Link</span>&gt;
+        &lt;/<span class="jsx">div</span>&gt;
+
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"feed-controls"</span>&gt;
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"sort-tabs"</span>&gt;
+            {([<span class="s">'hot'</span>, <span class="s">'new'</span>, <span class="s">'solved'</span>] <span class="k">as</span> <span class="t">Sort</span>[]).<span class="fn">map</span>(s =&gt; (
+              &lt;<span class="jsx">button</span>
+                <span class="prop">key</span>={s}
+                <span class="prop">onClick</span>={() =&gt; { <span class="fn">setSort</span>(s); <span class="fn">setPage</span>(<span class="num">1</span>) }}
+                <span class="prop">className</span>={`sort-tab ${sort === s ? <span class="s">'active'</span> : <span class="s">''</span>}`}
+              &gt;
+                {s}
+              &lt;/<span class="jsx">button</span>&gt;
+            ))}
+          &lt;/<span class="jsx">div</span>&gt;
+          {tag &amp;&amp; (
+            &lt;<span class="jsx">button</span> <span class="prop">className</span>=<span class="s">"active-tag"</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">setTag</span>(<span class="k">null</span>)}&gt;
+              #{tag} ✕
+            &lt;/<span class="jsx">button</span>&gt;
+          )}
+        &lt;/<span class="jsx">div</span>&gt;
+
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"thread-grid"</span>&gt;
+          {isLoading
+            ? <span class="t">Array</span>.<span class="fn">from</span>({ <span class="prop">length</span>: <span class="num">9</span> }).<span class="fn">map</span>((_, i) =&gt; (
+                &lt;<span class="jsx">div</span> <span class="prop">key</span>={i} <span class="prop">className</span>=<span class="s">"skeleton-card"</span> /&gt;
+              ))
+            : data?.<span class="prop">threads</span>.<span class="fn">map</span>(thread =&gt; (
+                &lt;<span class="t">ThreadCard</span>
+                  <span class="prop">key</span>={thread.<span class="prop">id</span>}
+                  <span class="prop">thread</span>={thread}
+                  <span class="prop">onTagClick</span>={<span class="fn">setTag</span>}
+                /&gt;
+              ))}
+        &lt;/<span class="jsx">div</span>&gt;
+
+        {data &amp;&amp; data.<span class="prop">pagination</span>.<span class="prop">pages</span> &gt; <span class="num">1</span> &amp;&amp; (
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"pagination"</span>&gt;
+            &lt;<span class="jsx">button</span> <span class="prop">disabled</span>={page === <span class="num">1</span>} <span class="prop">onClick</span>={() =&gt; <span class="fn">setPage</span>(p =&gt; p - <span class="num">1</span>)}&gt;← prev&lt;/<span class="jsx">button</span>&gt;
+            &lt;<span class="jsx">span</span>&gt;{page} / {data.<span class="prop">pagination</span>.<span class="prop">pages</span>}&lt;/<span class="jsx">span</span>&gt;
+            &lt;<span class="jsx">button</span> <span class="prop">disabled</span>={page === data.<span class="prop">pagination</span>.<span class="prop">pages</span>} <span class="prop">onClick</span>={() =&gt; <span class="fn">setPage</span>(p =&gt; p + <span class="num">1</span>)}&gt;next →&lt;/<span class="jsx">button</span>&gt;
+          &lt;/<span class="jsx">div</span>&gt;
+        )}
+
+      &lt;/<span class="jsx">main</span>&gt;
+    &lt;/&gt;
+  )
+}
+
+<span class="k">export const</span> <span class="fn">getServerSideProps</span>: <span class="t">GetServerSideProps</span> = <span class="k">async</span> (ctx) =&gt; {
+  <span class="k">const</span> <span class="prop">session</span> = <span class="k">await</span> <span class="fn">getServerSession</span>(ctx.<span class="prop">req</span>, ctx.<span class="prop">res</span>, authOptions)
+  <span class="k">return</span> { <span class="prop">props</span>: { session } }
+}</div>
+    </div>
+
+    <!-- pages/hole/[slug].tsx -->
+    <div class="code-pane" id="pane-hole-page">
+      <div class="line-numbers" id="ln-hole-page"></div>
+      <div class="code-content"><span class="c">// pages/hole/[slug].tsx
+// ═══════════════════════════════════════════════════════════
+// THE RABBIT HOLE EXPERIENCE
+// The entire game loop: level navigation, content rendering,
+// puzzle solving, and XP/badge feedback — all in one page.
+// ═══════════════════════════════════════════════════════════</span>
+
+<span class="imp">import</span> { <span class="fn">useState</span> }           <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> { <span class="fn">useRouter</span> }          <span class="imp">from</span> <span class="s">'next/router'</span>
+<span class="imp">import</span> <span class="fn">useSWR</span>                 <span class="imp">from</span> <span class="s">'swr'</span>
+<span class="imp">import</span> <span class="t">Head</span>                   <span class="imp">from</span> <span class="s">'next/head'</span>
+<span class="imp">import</span> <span class="t">LevelContent</span>           <span class="imp">from</span> <span class="s">'@/components/LevelContent'</span>
+<span class="imp">import</span> <span class="t">PuzzleBox</span>              <span class="imp">from</span> <span class="s">'@/components/PuzzleBox'</span>
+<span class="imp">import</span> <span class="t">XPToast</span>                <span class="imp">from</span> <span class="s">'@/components/XPToast'</span>
+<span class="imp">import</span> <span class="t">NavBar</span>                 <span class="imp">from</span> <span class="s">'@/components/NavBar'</span>
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">AttemptResponse</span> } <span class="imp">from</span> <span class="s">'@/types'</span>
+
+<span class="k">interface</span> <span class="t">HoleLevel</span> {
+  <span class="prop">id</span>:          <span class="t">string</span>
+  <span class="prop">levelNumber</span>: <span class="t">number</span>
+  <span class="prop">title</span>:       <span class="t">string</span> | <span class="k">null</span>
+  <span class="prop">content</span>:     <span class="t">string</span> | <span class="k">null</span>  <span class="c">// null when level is locked</span>
+  <span class="prop">mediaUrls</span>:   <span class="t">string</span>[]
+  <span class="prop">xpReward</span>:    <span class="t">number</span>
+  <span class="prop">isUnlocked</span>:  <span class="t">boolean</span>
+  <span class="prop">puzzle</span>: {
+    <span class="prop">id</span>:             <span class="t">string</span>
+    <span class="prop">type</span>:           <span class="t">string</span>
+    <span class="prop">question</span>:       <span class="t">string</span>
+    <span class="prop">maxAttempts</span>:    <span class="t">number</span> | <span class="k">null</span>
+    <span class="prop">externalClueUrl</span>:<span class="t">string</span> | <span class="k">null</span>
+  } | <span class="k">null</span>
+}
+
+<span class="k">interface</span> <span class="t">HoleData</span> {
+  <span class="prop">id</span>:           <span class="t">string</span>
+  <span class="prop">slug</span>:         <span class="t">string</span>
+  <span class="prop">title</span>:        <span class="t">string</span>
+  <span class="prop">teaser</span>:       <span class="t">string</span>
+  <span class="prop">totalLevels</span>:  <span class="t">number</span>
+  <span class="prop">solveCount</span>:   <span class="t">number</span>
+  <span class="prop">author</span>:       { <span class="prop">username</span>: <span class="t">string</span>; <span class="prop">avatarUrl</span>: <span class="t">string</span> | <span class="k">null</span>; <span class="prop">rank</span>: <span class="t">string</span> }
+  <span class="prop">tags</span>:         <span class="t">string</span>[]
+  <span class="prop">levels</span>:       <span class="t">HoleLevel</span>[]
+}
+
+<span class="k">const</span> <span class="fn">fetcher</span> = (url: <span class="t">string</span>) =&gt; <span class="fn">fetch</span>(url).<span class="fn">then</span>(r =&gt; r.<span class="fn">json</span>())
+
+<span class="k">export default function</span> <span class="fn">HolePage</span>() {
+  <span class="k">const</span> { query } = <span class="fn">useRouter</span>()
+  <span class="k">const</span> { slug }  = query
+
+  <span class="k">const</span> [activeLevel, <span class="fn">setActiveLevel</span>] = <span class="fn">useState</span>(<span class="num">1</span>)
+  <span class="k">const</span> [toast,       <span class="fn">setToast</span>]       = <span class="fn">useState</span>&lt;<span class="t">AttemptResponse</span> | <span class="k">null</span>&gt;(<span class="k">null</span>)
+
+  <span class="k">const</span> { data: hole, <span class="prop">mutate</span>: <span class="fn">reloadHole</span> } = <span class="fn">useSWR</span>&lt;<span class="t">HoleData</span>&gt;(
+    slug ? `/api/threads/${slug}` : <span class="k">null</span>,
+    fetcher
+  )
+
+  <span class="k">if</span> (!hole) <span class="k">return</span> &lt;<span class="t">HoleSkeleton</span> /&gt;
+
+  <span class="k">const</span> <span class="prop">current</span> = hole.<span class="prop">levels</span>.<span class="fn">find</span>(l =&gt; l.<span class="prop">levelNumber</span> === activeLevel)
+
+  <span class="k">const</span> <span class="fn">handleSolve</span> = (result: <span class="t">AttemptResponse</span>) =&gt; {
+    <span class="k">if</span> (result.<span class="prop">status</span> !== <span class="s">'correct'</span>) <span class="k">return</span>
+    <span class="fn">setToast</span>(result)
+    <span class="fn">reloadHole</span>()  <span class="c">// re-fetch so newly unlocked level content appears</span>
+    <span class="k">if</span> (!result.<span class="prop">isFinalLevel</span>) {
+      <span class="fn">setTimeout</span>(() =&gt; <span class="fn">setActiveLevel</span>(n =&gt; n + <span class="num">1</span>), <span class="num">1400</span>)
+    }
+  }
+
+  <span class="k">return</span> (
+    &lt;&gt;
+      &lt;<span class="t">Head</span>&gt;&lt;<span class="jsx">title</span>&gt;{hole.<span class="prop">title</span>} — rabbit hole&lt;/<span class="jsx">title</span>&gt;&lt;/<span class="t">Head</span>&gt;
+      &lt;<span class="t">NavBar</span> /&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"hole-layout"</span>&gt;
+
+        <span class="c">// ── Level nav sidebar ────────────────────────────────────</span>
+        &lt;<span class="jsx">aside</span> <span class="prop">className</span>=<span class="s">"level-nav"</span>&gt;
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"level-nav-header"</span>&gt;
+            &lt;<span class="jsx">span</span>&gt;{hole.<span class="prop">title</span>}&lt;/<span class="jsx">span</span>&gt;
+            &lt;<span class="jsx">span</span> <span class="prop">className</span>=<span class="s">"level-nav-count"</span>&gt;{hole.<span class="prop">totalLevels</span>} levels&lt;/<span class="jsx">span</span>&gt;
+          &lt;/<span class="jsx">div</span>&gt;
+          {hole.<span class="prop">levels</span>.<span class="fn">map</span>(level =&gt; (
+            &lt;<span class="jsx">button</span>
+              <span class="prop">key</span>={level.<span class="prop">id</span>}
+              <span class="prop">disabled</span>={!level.<span class="prop">isUnlocked</span> &amp;&amp; level.<span class="prop">levelNumber</span> !== <span class="num">1</span>}
+              <span class="prop">onClick</span>={() =&gt; <span class="fn">setActiveLevel</span>(level.<span class="prop">levelNumber</span>)}
+              <span class="prop">className</span>={[
+                <span class="s">'level-pip'</span>,
+                level.<span class="prop">levelNumber</span> === activeLevel &amp;&amp; <span class="s">'active'</span>,
+                level.<span class="prop">isUnlocked</span>                  &amp;&amp; <span class="s">'solved'</span>,
+                !level.<span class="prop">isUnlocked</span> &amp;&amp; level.<span class="prop">levelNumber</span> &gt; <span class="num">1</span> &amp;&amp; <span class="s">'locked'</span>,
+              ].<span class="fn">filter</span>(<span class="t">Boolean</span>).<span class="fn">join</span>(<span class="s">' '</span>)}
+            &gt;
+              &lt;<span class="jsx">span</span> <span class="prop">className</span>=<span class="s">"pip-num"</span>&gt;{level.<span class="prop">levelNumber</span>}&lt;/<span class="jsx">span</span>&gt;
+              &lt;<span class="jsx">span</span> <span class="prop">className</span>=<span class="s">"pip-title"</span>&gt;{level.<span class="prop">title</span> ?? `Level ${level.<span class="prop">levelNumber</span>}`}&lt;/<span class="jsx">span</span>&gt;
+              &lt;<span class="jsx">span</span> <span class="prop">className</span>=<span class="s">"pip-xp"</span>&gt;+{level.<span class="prop">xpReward</span>}xp&lt;/<span class="jsx">span</span>&gt;
+            &lt;/<span class="jsx">button</span>&gt;
+          ))}
+        &lt;/<span class="jsx">aside</span>&gt;
+
+        <span class="c">// ── Main content area ────────────────────────────────────</span>
+        &lt;<span class="jsx">main</span> <span class="prop">className</span>=<span class="s">"hole-main"</span>&gt;
+          {current &amp;&amp; (
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"level-wrapper"</span>&gt;
+              {current.<span class="prop">content</span> ? (
+                &lt;<span class="t">LevelContent</span>
+                  <span class="prop">content</span>={current.<span class="prop">content</span>}
+                  <span class="prop">mediaUrls</span>={current.<span class="prop">mediaUrls</span>}
+                /&gt;
+              ) : (
+                &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"locked-banner"</span>&gt;
+                  🔒 Solve level {activeLevel - <span class="num">1</span>} to unlock this content
+                &lt;/<span class="jsx">div</span>&gt;
+              )}
+              {current.<span class="prop">puzzle</span> &amp;&amp; (
+                &lt;<span class="t">PuzzleBox</span>
+                  <span class="prop">puzzle</span>={current.<span class="prop">puzzle</span>}
+                  <span class="prop">isUnlocked</span>={current.<span class="prop">isUnlocked</span>}
+                  <span class="prop">onSolve</span>={<span class="fn">handleSolve</span>}
+                /&gt;
+              )}
+            &lt;/<span class="jsx">div</span>&gt;
+          )}
+        &lt;/<span class="jsx">main</span>&gt;
+
+      &lt;/<span class="jsx">div</span>&gt;
+
+      {toast?.<span class="prop">status</span> === <span class="s">'correct'</span> &amp;&amp; (
+        &lt;<span class="t">XPToast</span> <span class="prop">result</span>={toast} <span class="prop">onDismiss</span>={() =&gt; <span class="fn">setToast</span>(<span class="k">null</span>)} /&gt;
+      )}
+    &lt;/&gt;
+  )
+}
+
+<span class="k">function</span> <span class="fn">HoleSkeleton</span>() {
+  <span class="k">return</span> (
+    &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"hole-skeleton"</span>&gt;
+      &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"sk sk-title"</span> /&gt;
+      &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"sk sk-body"</span> /&gt;
+    &lt;/<span class="jsx">div</span>&gt;
+  )
+}</div>
+    </div>
+
+    <!-- pages/profile/[username].tsx -->
+    <div class="code-pane" id="pane-profile">
+      <div class="line-numbers" id="ln-profile"></div>
+      <div class="code-content"><span class="c">// pages/profile/[username].tsx
+// Public profile: avatar, XP progress bar, rank, badge wall, stats.
+// Server-side rendered — no SWR needed, data is static at request time.</span>
+
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">GetServerSideProps</span> } <span class="imp">from</span> <span class="s">'next'</span>
+<span class="imp">import</span> <span class="t">Head</span>                     <span class="imp">from</span> <span class="s">'next/head'</span>
+<span class="imp">import</span> { prisma }                <span class="imp">from</span> <span class="s">'@/lib/prisma'</span>
+<span class="imp">import</span> { <span class="prop">RANK_THRESHOLDS</span>, <span class="prop">RANK_ORDER</span> } <span class="imp">from</span> <span class="s">'@/lib/xp'</span>
+<span class="imp">import</span> <span class="t">NavBar</span>                   <span class="imp">from</span> <span class="s">'@/components/NavBar'</span>
+
+<span class="k">const</span> <span class="prop">RARITY_COLORS</span> = {
+  <span class="prop">COMMON</span>:    <span class="s">'#4a5568'</span>,
+  <span class="prop">RARE</span>:      <span class="s">'#0891b2'</span>,
+  <span class="prop">LEGENDARY</span>: <span class="s">'#d97706'</span>,
+} <span class="k">as const</span>
+
+<span class="k">interface</span> <span class="t">ProfileProps</span> {
+  <span class="prop">user</span>: {
+    <span class="prop">username</span>:    <span class="t">string</span>
+    <span class="prop">displayName</span>: <span class="t">string</span> | <span class="k">null</span>
+    <span class="prop">avatarUrl</span>:   <span class="t">string</span> | <span class="k">null</span>
+    <span class="prop">bio</span>:         <span class="t">string</span> | <span class="k">null</span>
+    <span class="prop">xp</span>:          <span class="t">number</span>
+    <span class="prop">rank</span>:        <span class="t">string</span>
+  }
+  <span class="prop">stats</span>: { <span class="prop">holesCreated</span>: <span class="t">number</span>; <span class="prop">holesSolved</span>: <span class="t">number</span>; <span class="prop">badgesEarned</span>: <span class="t">number</span> }
+  <span class="prop">badges</span>: { <span class="prop">name</span>: <span class="t">string</span>; <span class="prop">slug</span>: <span class="t">string</span>; <span class="prop">rarity</span>: <span class="t">string</span>; <span class="prop">description</span>: <span class="t">string</span> }[]
+}
+
+<span class="k">export default function</span> <span class="fn">ProfilePage</span>({ user, stats, badges }: <span class="t">ProfileProps</span>) {
+  <span class="k">const</span> <span class="prop">rankIdx</span>    = <span class="prop">RANK_ORDER</span>.<span class="fn">indexOf</span>(user.<span class="prop">rank</span> <span class="k">as</span> <span class="k">any</span>)
+  <span class="k">const</span> <span class="prop">nextRank</span>   = <span class="prop">RANK_ORDER</span>[rankIdx + <span class="num">1</span>]
+  <span class="k">const</span> <span class="prop">currentMin</span> = <span class="prop">RANK_THRESHOLDS</span>[user.<span class="prop">rank</span> <span class="k">as</span> <span class="k">any</span>]
+  <span class="k">const</span> <span class="prop">nextMin</span>    = nextRank ? <span class="prop">RANK_THRESHOLDS</span>[nextRank <span class="k">as</span> <span class="k">any</span>] : user.<span class="prop">xp</span>
+  <span class="k">const</span> <span class="prop">xpPct</span>      = nextRank
+    ? ((user.<span class="prop">xp</span> - currentMin) / (nextMin - currentMin)) * <span class="num">100</span>
+    : <span class="num">100</span>
+
+  <span class="k">return</span> (
+    &lt;&gt;
+      &lt;<span class="t">Head</span>&gt;&lt;<span class="jsx">title</span>&gt;@{user.<span class="prop">username</span>} — rabbit hole&lt;/<span class="jsx">title</span>&gt;&lt;/<span class="t">Head</span>&gt;
+      &lt;<span class="t">NavBar</span> /&gt;
+      &lt;<span class="jsx">main</span> <span class="prop">className</span>=<span class="s">"profile-root"</span>&gt;
+
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"profile-header"</span>&gt;
+          {user.<span class="prop">avatarUrl</span> &amp;&amp; (
+            &lt;<span class="jsx">img</span> <span class="prop">src</span>={user.<span class="prop">avatarUrl</span>} <span class="prop">alt</span>={user.<span class="prop">username</span>} <span class="prop">className</span>=<span class="s">"profile-avatar"</span> /&gt;
+          )}
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"profile-info"</span>&gt;
+            &lt;<span class="jsx">h1</span>&gt;{user.<span class="prop">displayName</span> ?? user.<span class="prop">username</span>}&lt;/<span class="jsx">h1</span>&gt;
+            &lt;<span class="jsx">p</span> <span class="prop">className</span>=<span class="s">"profile-handle"</span>&gt;@{user.<span class="prop">username</span>}&lt;/<span class="jsx">p</span>&gt;
+            {user.<span class="prop">bio</span> &amp;&amp; &lt;<span class="jsx">p</span> <span class="prop">className</span>=<span class="s">"profile-bio"</span>&gt;{user.<span class="prop">bio</span>}&lt;/<span class="jsx">p</span>&gt;}
+          &lt;/<span class="jsx">div</span>&gt;
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"rank-block"</span>&gt;
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"rank-label"</span>&gt;{user.<span class="prop">rank</span>.<span class="fn">replace</span>(<span class="s">'_'</span>, <span class="s">' '</span>)}&lt;/<span class="jsx">div</span>&gt;
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"xp-bar-wrap"</span>&gt;
+              &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"xp-bar-fill"</span> <span class="prop">style</span>={{ <span class="prop">width</span>: `${xpPct}%` }} /&gt;
+            &lt;/<span class="jsx">div</span>&gt;
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"xp-value"</span>&gt;{user.<span class="prop">xp</span>.<span class="fn">toLocaleString</span>()} XP&lt;/<span class="jsx">div</span>&gt;
+            {nextRank &amp;&amp; &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"next-rank"</span>&gt;next: {nextRank.<span class="fn">replace</span>(<span class="s">'_'</span>, <span class="s">' '</span>)}&lt;/<span class="jsx">div</span>&gt;}
+          &lt;/<span class="jsx">div</span>&gt;
+        &lt;/<span class="jsx">div</span>&gt;
+
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"profile-stats"</span>&gt;
+          {[
+            { <span class="prop">label</span>: <span class="s">'created'</span>,  <span class="prop">value</span>: stats.<span class="prop">holesCreated</span> },
+            { <span class="prop">label</span>: <span class="s">'solved'</span>,   <span class="prop">value</span>: stats.<span class="prop">holesSolved</span> },
+            { <span class="prop">label</span>: <span class="s">'badges'</span>,   <span class="prop">value</span>: stats.<span class="prop">badgesEarned</span> },
+          ].<span class="fn">map</span>(({ label, value }) =&gt; (
+            &lt;<span class="jsx">div</span> <span class="prop">key</span>={label} <span class="prop">className</span>=<span class="s">"stat-tile"</span>&gt;
+              &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"stat-num"</span>&gt;{value}&lt;/<span class="jsx">div</span>&gt;
+              &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"stat-name"</span>&gt;{label}&lt;/<span class="jsx">div</span>&gt;
+            &lt;/<span class="jsx">div</span>&gt;
+          ))}
+        &lt;/<span class="jsx">div</span>&gt;
+
+        &lt;<span class="jsx">section</span> <span class="prop">className</span>=<span class="s">"badge-wall"</span>&gt;
+          &lt;<span class="jsx">h2</span>&gt;badges&lt;/<span class="jsx">h2</span>&gt;
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"badge-grid"</span>&gt;
+            {badges.<span class="fn">map</span>(b =&gt; (
+              &lt;<span class="jsx">div</span>
+                <span class="prop">key</span>={b.<span class="prop">slug</span>}
+                <span class="prop">className</span>=<span class="s">"badge-card"</span>
+                <span class="prop">style</span>={{ <span class="prop">borderColor</span>: <span class="prop">RARITY_COLORS</span>[b.<span class="prop">rarity</span> <span class="k">as</span> <span class="k">keyof</span> <span class="k">typeof</span> <span class="prop">RARITY_COLORS</span>] }}
+              &gt;
+                &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"badge-name"</span>&gt;{b.<span class="prop">name</span>}&lt;/<span class="jsx">div</span>&gt;
+                &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"badge-desc"</span>&gt;{b.<span class="prop">description</span>}&lt;/<span class="jsx">div</span>&gt;
+                &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"badge-rarity"</span>&gt;{b.<span class="prop">rarity</span>}&lt;/<span class="jsx">div</span>&gt;
+              &lt;/<span class="jsx">div</span>&gt;
+            ))}
+          &lt;/<span class="jsx">div</span>&gt;
+        &lt;/<span class="jsx">section</span>&gt;
+
+      &lt;/<span class="jsx">main</span>&gt;
+    &lt;/&gt;
+  )
+}
+
+<span class="k">export const</span> <span class="fn">getServerSideProps</span>: <span class="t">GetServerSideProps</span> = <span class="k">async</span> ({ params }) =&gt; {
+  <span class="k">const</span> <span class="prop">username</span> = params?.<span class="prop">username</span> <span class="k">as</span> <span class="t">string</span>
+
+  <span class="k">const</span> <span class="prop">user</span> = <span class="k">await</span> prisma.<span class="prop">user</span>.<span class="fn">findUnique</span>({
+    <span class="prop">where</span>:  { username },
+    <span class="prop">select</span>: {
+      <span class="prop">username</span>: <span class="k">true</span>, <span class="prop">displayName</span>: <span class="k">true</span>, <span class="prop">avatarUrl</span>: <span class="k">true</span>,
+      <span class="prop">bio</span>: <span class="k">true</span>, <span class="prop">xp</span>: <span class="k">true</span>, <span class="prop">rank</span>: <span class="k">true</span>,
+      <span class="prop">_count</span>: { <span class="prop">select</span>: { <span class="prop">threads</span>: <span class="k">true</span>, <span class="prop">badges</span>: <span class="k">true</span> } },
+    },
+  })
+
+  <span class="k">if</span> (!user) <span class="k">return</span> { <span class="prop">notFound</span>: <span class="k">true</span> }
+
+  <span class="c">// Count threads where user unlocked the final level</span>
+  <span class="k">const</span> <span class="prop">solvedResult</span> = <span class="k">await</span> prisma.$<span class="fn">queryRaw</span>&lt;[{ <span class="prop">count</span>: <span class="t">bigint</span> }]&gt;`
+    SELECT COUNT(DISTINCT lu."threadId") as count
+    FROM "LevelUnlock" lu
+    JOIN "Level" l ON l.id = lu."levelId"
+    JOIN "RabbitHoleThread" t ON t.id = lu."threadId"
+    WHERE lu."userId" = (SELECT id FROM "User" WHERE username = ${username})
+    AND l."levelNumber" = t."totalLevels"
+  `
+
+  <span class="k">const</span> <span class="prop">badges</span> = <span class="k">await</span> prisma.<span class="prop">userBadge</span>.<span class="fn">findMany</span>({
+    <span class="prop">where</span>:   { <span class="prop">user</span>: { username } },
+    <span class="prop">include</span>: { <span class="prop">badge</span>: { <span class="prop">select</span>: { <span class="prop">name</span>: <span class="k">true</span>, <span class="prop">slug</span>: <span class="k">true</span>, <span class="prop">rarity</span>: <span class="k">true</span>, <span class="prop">description</span>: <span class="k">true</span> } } },
+    <span class="prop">orderBy</span>: { <span class="prop">earnedAt</span>: <span class="s">'asc'</span> },
+  })
+
+  <span class="k">return</span> {
+    <span class="prop">props</span>: {
+      user,
+      <span class="prop">stats</span>: {
+        <span class="prop">holesCreated</span>: user.<span class="prop">_count</span>.<span class="prop">threads</span>,
+        <span class="prop">holesSolved</span>:  <span class="t">Number</span>(solvedResult[<span class="num">0</span>].<span class="prop">count</span>),
+        <span class="prop">badgesEarned</span>: user.<span class="prop">_count</span>.<span class="prop">badges</span>,
+      },
+      <span class="prop">badges</span>: badges.<span class="fn">map</span>(b =&gt; b.<span class="prop">badge</span>),
+    },
+  }
+}</div>
+    </div>
+
+    <!-- pages/create/index.tsx -->
+    <div class="code-pane" id="pane-create">
+      <div class="line-numbers" id="ln-create"></div>
+      <div class="code-content"><span class="c">// pages/create/index.tsx
+// Multi-step wizard: thread metadata → add levels → review + publish.
+// Each step validates before advancing. Publishes atomically to the API.</span>
+
+<span class="imp">import</span> { <span class="fn">useState</span> }         <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> { <span class="fn">useSession</span> }       <span class="imp">from</span> <span class="s">'next-auth/react'</span>
+<span class="imp">import</span> { <span class="fn">useRouter</span> }        <span class="imp">from</span> <span class="s">'next/router'</span>
+<span class="imp">import</span> <span class="t">NavBar</span>               <span class="imp">from</span> <span class="s">'@/components/NavBar'</span>
+
+<span class="k">type</span> <span class="t">Step</span> = <span class="s">'thread'</span> | <span class="s">'levels'</span> | <span class="s">'review'</span>
+
+<span class="k">interface</span> <span class="t">ThreadDraft</span> {
+  <span class="prop">title</span>: <span class="t">string</span>; <span class="prop">teaser</span>: <span class="t">string</span>; <span class="prop">isSecret</span>: <span class="t">boolean</span>; <span class="prop">tags</span>: <span class="t">string</span>[]
+}
+
+<span class="k">interface</span> <span class="t">LevelDraft</span> {
+  <span class="prop">title</span>: <span class="t">string</span>; <span class="prop">content</span>: <span class="t">string</span>; <span class="prop">xpReward</span>: <span class="t">number</span>
+  <span class="prop">puzzle</span>: {
+    <span class="prop">type</span>: <span class="t">string</span>; <span class="prop">question</span>: <span class="t">string</span>; <span class="prop">answer</span>: <span class="t">string</span>
+    <span class="prop">caseSensitive</span>: <span class="t">boolean</span>; <span class="prop">maxAttempts</span>: <span class="t">number</span> | <span class="k">null</span>; <span class="prop">answerHints</span>: <span class="t">string</span>[]
+  }
+}
+
+<span class="k">const</span> <span class="fn">newLevel</span> = (n: <span class="t">number</span>): <span class="t">LevelDraft</span> =&gt; ({
+  <span class="prop">title</span>: `Level ${n}`, <span class="prop">content</span>: <span class="s">''</span>, <span class="prop">xpReward</span>: <span class="num">50</span>,
+  <span class="prop">puzzle</span>: { <span class="prop">type</span>: <span class="s">'TEXT_RIDDLE'</span>, <span class="prop">question</span>: <span class="s">''</span>, <span class="prop">answer</span>: <span class="s">''</span>,
+             <span class="prop">caseSensitive</span>: <span class="k">false</span>, <span class="prop">maxAttempts</span>: <span class="k">null</span>, <span class="prop">answerHints</span>: [] },
+})
+
+<span class="k">export default function</span> <span class="fn">CreatePage</span>() {
+  <span class="fn">useSession</span>({ <span class="prop">required</span>: <span class="k">true</span> })  <span class="c">// redirects to sign-in if unauthenticated</span>
+  <span class="k">const</span> router = <span class="fn">useRouter</span>()
+
+  <span class="k">const</span> [step,        <span class="fn">setStep</span>]        = <span class="fn">useState</span>&lt;<span class="t">Step</span>&gt;(<span class="s">'thread'</span>)
+  <span class="k">const</span> [thread,      <span class="fn">setThread</span>]      = <span class="fn">useState</span>&lt;<span class="t">ThreadDraft</span>&gt;({
+    <span class="prop">title</span>: <span class="s">''</span>, <span class="prop">teaser</span>: <span class="s">''</span>, <span class="prop">isSecret</span>: <span class="k">false</span>, <span class="prop">tags</span>: [],
+  })
+  <span class="k">const</span> [levels,      <span class="fn">setLevels</span>]      = <span class="fn">useState</span>&lt;<span class="t">LevelDraft</span>[]&gt;([<span class="fn">newLevel</span>(<span class="num">1</span>)])
+  <span class="k">const</span> [editingIdx,  <span class="fn">setEditingIdx</span>]  = <span class="fn">useState</span>(<span class="num">0</span>)
+  <span class="k">const</span> [tagInput,    <span class="fn">setTagInput</span>]    = <span class="fn">useState</span>(<span class="s">''</span>)
+  <span class="k">const</span> [publishing,  <span class="fn">setPublishing</span>]  = <span class="fn">useState</span>(<span class="k">false</span>)
+
+  <span class="k">const</span> <span class="fn">addTag</span> = () =&gt; {
+    <span class="k">const</span> t = tagInput.<span class="fn">trim</span>().<span class="fn">toLowerCase</span>()
+    <span class="k">if</span> (t &amp;&amp; !thread.<span class="prop">tags</span>.<span class="fn">includes</span>(t) &amp;&amp; thread.<span class="prop">tags</span>.<span class="prop">length</span> &lt; <span class="num">8</span>) {
+      <span class="fn">setThread</span>(p =&gt; ({ ...p, <span class="prop">tags</span>: [...p.<span class="prop">tags</span>, t] }))
+      <span class="fn">setTagInput</span>(<span class="s">''</span>)
+    }
+  }
+
+  <span class="k">const</span> <span class="fn">updateLevel</span> = (idx: <span class="t">number</span>, patch: <span class="t">Partial</span>&lt;<span class="t">LevelDraft</span>&gt;) =&gt;
+    <span class="fn">setLevels</span>(prev =&gt; prev.<span class="fn">map</span>((l, i) =&gt; i === idx ? { ...l, ...patch } : l))
+
+  <span class="k">const</span> <span class="fn">publish</span> = <span class="k">async</span> () =&gt; {
+    <span class="fn">setPublishing</span>(<span class="k">true</span>)
+    <span class="k">try</span> {
+      <span class="c">// Step 1: create the thread shell</span>
+      <span class="k">const</span> <span class="prop">threadRes</span> = <span class="k">await</span> <span class="fn">fetch</span>(<span class="s">'/api/threads'</span>, {
+        <span class="prop">method</span>:  <span class="s">'POST'</span>,
+        <span class="prop">headers</span>: { <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span> },
+        <span class="prop">body</span>:    <span class="t">JSON</span>.<span class="fn">stringify</span>(thread),
+      })
+      <span class="k">if</span> (!threadRes.<span class="prop">ok</span>) <span class="k">throw new</span> <span class="fn">Error</span>(<span class="k">await</span> threadRes.<span class="fn">text</span>())
+      <span class="k">const</span> { <span class="prop">thread</span>: created } = <span class="k">await</span> threadRes.<span class="fn">json</span>()
+
+      <span class="c">// Step 2: add each level sequentially (order matters)</span>
+      <span class="k">for</span> (<span class="k">const</span> level <span class="k">of</span> levels) {
+        <span class="k">const</span> <span class="prop">lvlRes</span> = <span class="k">await</span> <span class="fn">fetch</span>(`/api/threads/${created.<span class="prop">slug</span>}/levels`, {
+          <span class="prop">method</span>:  <span class="s">'POST'</span>,
+          <span class="prop">headers</span>: { <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span> },
+          <span class="prop">body</span>:    <span class="t">JSON</span>.<span class="fn">stringify</span>(level),
+        })
+        <span class="k">if</span> (!lvlRes.<span class="prop">ok</span>) <span class="k">throw new</span> <span class="fn">Error</span>(`Level failed: ${<span class="k">await</span> lvlRes.<span class="fn">text</span>()}`)
+      }
+
+      router.<span class="fn">push</span>(`/hole/${created.<span class="prop">slug</span>}`)
+    } <span class="k">catch</span> (err) {
+      <span class="fn">alert</span>(err <span class="k">instanceof</span> <span class="t">Error</span> ? err.<span class="prop">message</span> : <span class="s">'Publish failed'</span>)
+    } <span class="k">finally</span> {
+      <span class="fn">setPublishing</span>(<span class="k">false</span>)
+    }
+  }
+
+  <span class="k">const</span> <span class="prop">canAdvance</span> = {
+    <span class="prop">thread</span>: thread.<span class="prop">title</span>.<span class="prop">length</span> &gt;= <span class="num">3</span> &amp;&amp; thread.<span class="prop">teaser</span>.<span class="prop">length</span> &gt;= <span class="num">10</span>,
+    <span class="prop">levels</span>: levels.<span class="fn">every</span>(l =&gt; l.<span class="prop">content</span>.<span class="prop">length</span> &gt;= <span class="num">20</span> &amp;&amp; l.<span class="prop">puzzle</span>.<span class="prop">answer</span>.<span class="prop">length</span> &gt;= <span class="num">1</span>),
+  }
+
+  <span class="k">return</span> (
+    &lt;&gt;
+      &lt;<span class="t">NavBar</span> /&gt;
+      &lt;<span class="jsx">main</span> <span class="prop">className</span>=<span class="s">"create-root"</span>&gt;
+
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"create-steps"</span>&gt;
+          {([<span class="s">'thread'</span>, <span class="s">'levels'</span>, <span class="s">'review'</span>] <span class="k">as</span> <span class="t">Step</span>[]).<span class="fn">map</span>((s, i) =&gt; (
+            &lt;<span class="jsx">div</span> <span class="prop">key</span>={s} <span class="prop">className</span>={`step-pill ${step === s ? <span class="s">'active'</span> : <span class="s">''</span>}`}&gt;
+              {i + <span class="num">1</span>}. {s}
+            &lt;/<span class="jsx">div</span>&gt;
+          ))}
+        &lt;/<span class="jsx">div</span>&gt;
+
+        {step === <span class="s">'thread'</span> &amp;&amp; (
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"create-panel"</span>&gt;
+            &lt;<span class="jsx">h2</span>&gt;The Setup&lt;/<span class="jsx">h2</span>&gt;
+            &lt;<span class="jsx">label</span>&gt;Title
+              &lt;<span class="jsx">input</span> <span class="prop">value</span>={thread.<span class="prop">title</span>} <span class="prop">maxLength</span>={<span class="num">120</span>}
+                <span class="prop">onChange</span>={e =&gt; <span class="fn">setThread</span>(p =&gt; ({ ...p, <span class="prop">title</span>: e.<span class="prop">target</span>.<span class="prop">value</span> }))} /&gt;
+            &lt;/<span class="jsx">label</span>&gt;
+            &lt;<span class="jsx">label</span>&gt;Teaser &lt;<span class="jsx">span</span> <span class="prop">className</span>=<span class="s">"hint"</span>&gt;(the hook shown on the feed)&lt;/<span class="jsx">span</span>&gt;
+              &lt;<span class="jsx">textarea</span> <span class="prop">value</span>={thread.<span class="prop">teaser</span>} <span class="prop">rows</span>={<span class="num">3</span>} <span class="prop">maxLength</span>={<span class="num">300</span>}
+                <span class="prop">onChange</span>={e =&gt; <span class="fn">setThread</span>(p =&gt; ({ ...p, <span class="prop">teaser</span>: e.<span class="prop">target</span>.<span class="prop">value</span> }))} /&gt;
+            &lt;/<span class="jsx">label</span>&gt;
+            &lt;<span class="jsx">label</span> <span class="prop">className</span>=<span class="s">"checkbox-label"</span>&gt;
+              &lt;<span class="jsx">input</span> <span class="prop">type</span>=<span class="s">"checkbox"</span> <span class="prop">checked</span>={thread.<span class="prop">isSecret</span>}
+                <span class="prop">onChange</span>={e =&gt; <span class="fn">setThread</span>(p =&gt; ({ ...p, <span class="prop">isSecret</span>: e.<span class="prop">target</span>.<span class="prop">checked</span> }))} /&gt;
+              Secret hole — hidden from feed, discoverable only via in-world clue
+            &lt;/<span class="jsx">label</span>&gt;
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"tag-row"</span>&gt;
+              &lt;<span class="jsx">input</span> <span class="prop">value</span>={tagInput} <span class="prop">placeholder</span>=<span class="s">"add tag"</span>
+                <span class="prop">onChange</span>={e =&gt; <span class="fn">setTagInput</span>(e.<span class="prop">target</span>.<span class="prop">value</span>)}
+                <span class="prop">onKeyDown</span>={e =&gt; e.<span class="prop">key</span> === <span class="s">'Enter'</span> &amp;&amp; (e.<span class="fn">preventDefault</span>(), <span class="fn">addTag</span>())} /&gt;
+              &lt;<span class="jsx">button</span> <span class="prop">onClick</span>={<span class="fn">addTag</span>}&gt;+&lt;/<span class="jsx">button</span>&gt;
+            &lt;/<span class="jsx">div</span>&gt;
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"tag-chips"</span>&gt;
+              {thread.<span class="prop">tags</span>.<span class="fn">map</span>(t =&gt; (
+                &lt;<span class="jsx">span</span> <span class="prop">key</span>={t} <span class="prop">className</span>=<span class="s">"tag-chip"</span>&gt;
+                  #{t} &lt;<span class="jsx">button</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">setThread</span>(p =&gt; ({ ...p, <span class="prop">tags</span>: p.<span class="prop">tags</span>.<span class="fn">filter</span>(x =&gt; x !== t) }))}&gt;✕&lt;/<span class="jsx">button</span>&gt;
+                &lt;/<span class="jsx">span</span>&gt;
+              ))}
+            &lt;/<span class="jsx">div</span>&gt;
+            &lt;<span class="jsx">button</span> <span class="prop">className</span>=<span class="s">"btn-next"</span> <span class="prop">disabled</span>={!canAdvance.<span class="prop">thread</span>} <span class="prop">onClick</span>={() =&gt; <span class="fn">setStep</span>(<span class="s">'levels'</span>)}&gt;
+              next: add levels →
+            &lt;/<span class="jsx">button</span>&gt;
+          &lt;/<span class="jsx">div</span>&gt;
+        )}
+
+        {step === <span class="s">'levels'</span> &amp;&amp; (
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"create-panel"</span>&gt;
+            &lt;<span class="jsx">h2</span>&gt;The Descent &lt;<span class="jsx">span</span> <span class="prop">className</span>=<span class="s">"dim"</span>&gt;({levels.<span class="prop">length</span>} levels)&lt;/<span class="jsx">span</span>&gt;&lt;/<span class="jsx">h2</span>&gt;
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"level-tabs"</span>&gt;
+              {levels.<span class="fn">map</span>((_, i) =&gt; (
+                &lt;<span class="jsx">button</span> <span class="prop">key</span>={i} <span class="prop">onClick</span>={() =&gt; <span class="fn">setEditingIdx</span>(i)}
+                  <span class="prop">className</span>={editingIdx === i ? <span class="s">'active'</span> : <span class="s">''</span>}&gt;L{i + <span class="num">1</span>}&lt;/<span class="jsx">button</span>&gt;
+              ))}
+              &lt;<span class="jsx">button</span> <span class="prop">className</span>=<span class="s">"btn-add"</span>
+                <span class="prop">onClick</span>={() =&gt; { <span class="fn">setLevels</span>(p =&gt; [...p, <span class="fn">newLevel</span>(p.<span class="prop">length</span> + <span class="num">1</span>)]); <span class="fn">setEditingIdx</span>(levels.<span class="prop">length</span>) }}&gt;
+                + level
+              &lt;/<span class="jsx">button</span>&gt;
+            &lt;/<span class="jsx">div</span>&gt;
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"level-editor"</span>&gt;
+              <span class="c">// Level content + puzzle fields for levels[editingIdx]</span>
+              <span class="c">// (full level editor UI omitted for brevity — see LevelEditor component)</span>
+            &lt;/<span class="jsx">div</span>&gt;
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"btn-row"</span>&gt;
+              &lt;<span class="jsx">button</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">setStep</span>(<span class="s">'thread'</span>)}&gt;← back&lt;/<span class="jsx">button</span>&gt;
+              &lt;<span class="jsx">button</span> <span class="prop">disabled</span>={!canAdvance.<span class="prop">levels</span>} <span class="prop">onClick</span>={() =&gt; <span class="fn">setStep</span>(<span class="s">'review'</span>)}&gt;review →&lt;/<span class="jsx">button</span>&gt;
+            &lt;/<span class="jsx">div</span>&gt;
+          &lt;/<span class="jsx">div</span>&gt;
+        )}
+
+        {step === <span class="s">'review'</span> &amp;&amp; (
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"create-panel"</span>&gt;
+            &lt;<span class="jsx">h2</span>&gt;Ready to drop?&lt;/<span class="jsx">h2</span>&gt;
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"review-card"</span>&gt;
+              &lt;<span class="jsx">p</span>&gt;&lt;<span class="jsx">strong</span>&gt;{thread.<span class="prop">title</span>}&lt;/<span class="jsx">strong</span>&gt;&lt;/<span class="jsx">p</span>&gt;
+              &lt;<span class="jsx">p</span> <span class="prop">className</span>=<span class="s">"dim"</span>&gt;{thread.<span class="prop">teaser</span>}&lt;/<span class="jsx">p</span>&gt;
+              &lt;<span class="jsx">p</span>&gt;{levels.<span class="prop">length</span>} levels · {thread.<span class="prop">isSecret</span> ? <span class="s">'🔒 secret'</span> : <span class="s">'public'</span>}&lt;/<span class="jsx">p</span>&gt;
+              &lt;<span class="jsx">p</span>&gt;{thread.<span class="prop">tags</span>.<span class="fn">map</span>(t =&gt; `#${t}`).<span class="fn">join</span>(<span class="s">' '</span>)}&lt;/<span class="jsx">p</span>&gt;
+            &lt;/<span class="jsx">div</span>&gt;
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"btn-row"</span>&gt;
+              &lt;<span class="jsx">button</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">setStep</span>(<span class="s">'levels'</span>)}&gt;← back&lt;/<span class="jsx">button</span>&gt;
+              &lt;<span class="jsx">button</span> <span class="prop">className</span>=<span class="s">"btn-publish"</span> <span class="prop">disabled</span>={publishing} <span class="prop">onClick</span>={<span class="fn">publish</span>}&gt;
+                {publishing ? <span class="s">'dropping...'</span> : <span class="s">'🕳️ drop it'</span>}
+              &lt;/<span class="jsx">button</span>&gt;
+            &lt;/<span class="jsx">div</span>&gt;
+          &lt;/<span class="jsx">div</span>&gt;
+        )}
+
+      &lt;/<span class="jsx">main</span>&gt;
+    &lt;/&gt;
+  )
+}</div>
+    </div>
+
+    <!-- components/NavBar.tsx -->
+    <div class="code-pane" id="pane-navbar">
+      <div class="line-numbers" id="ln-navbar"></div>
+      <div class="code-content"><span class="c">// components/NavBar.tsx
+// Top navigation: logo, sign-in/out, user XP summary.
+// Reads session client-side — no SSR prop drilling needed.</span>
+
+<span class="imp">import</span> <span class="t">Link</span>                              <span class="imp">from</span> <span class="s">'next/link'</span>
+<span class="imp">import</span> { <span class="fn">useSession</span>, <span class="fn">signIn</span>, <span class="fn">signOut</span> } <span class="imp">from</span> <span class="s">'next-auth/react'</span>
+
+<span class="k">export default function</span> <span class="fn">NavBar</span>() {
+  <span class="k">const</span> { <span class="prop">data</span>: session, <span class="prop">status</span> } = <span class="fn">useSession</span>()
+
+  <span class="k">return</span> (
+    &lt;<span class="jsx">nav</span> <span class="prop">className</span>=<span class="s">"navbar"</span>&gt;
+
+      &lt;<span class="t">Link</span> <span class="prop">href</span>=<span class="s">"/"</span> <span class="prop">className</span>=<span class="s">"nav-logo"</span>&gt;
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"nav-dot"</span> /&gt;
+        rabbit-hole
+      &lt;/<span class="t">Link</span>&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"nav-right"</span>&gt;
+
+        {status === <span class="s">'loading'</span> &amp;&amp; (
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"nav-skeleton"</span> /&gt;
+        )}
+
+        {status === <span class="s">'unauthenticated'</span> &amp;&amp; (
+          &lt;<span class="jsx">button</span> <span class="prop">className</span>=<span class="s">"btn-signin"</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">signIn</span>()}&gt;
+            sign in
+          &lt;/<span class="jsx">button</span>&gt;
+        )}
+
+        {status === <span class="s">'authenticated'</span> &amp;&amp; session &amp;&amp; (
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"nav-user"</span>&gt;
+            &lt;<span class="t">Link</span> <span class="prop">href</span>={`/profile/${session.<span class="prop">user</span>.<span class="prop">name</span>}`} <span class="prop">className</span>=<span class="s">"nav-username"</span>&gt;
+              @{session.<span class="prop">user</span>.<span class="prop">name</span>}
+            &lt;/<span class="t">Link</span>&gt;
+            &lt;<span class="jsx">button</span> <span class="prop">className</span>=<span class="s">"nav-signout"</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">signOut</span>()}&gt;
+              sign out
+            &lt;/<span class="jsx">button</span>&gt;
+          &lt;/<span class="jsx">div</span>&gt;
+        )}
+
+      &lt;/<span class="jsx">div</span>&gt;
+    &lt;/<span class="jsx">nav</span>&gt;
+  )
+}</div>
+    </div>
+
+    <!-- components/ThreadCard.tsx -->
+    <div class="code-pane" id="pane-thread-card">
+      <div class="line-numbers" id="ln-thread-card"></div>
+      <div class="code-content"><span class="c">// components/ThreadCard.tsx
+// Feed card for a rabbit hole. Depth indicator, solve count, tag pills.
+// onTagClick filters the feed without a page reload.</span>
+
+<span class="imp">import</span> <span class="t">Link</span>        <span class="imp">from</span> <span class="s">'next/link'</span>
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">ThreadCard</span> <span class="k">as</span> <span class="t">TThread</span> } <span class="imp">from</span> <span class="s">'@/types'</span>
+
+<span class="k">const</span> <span class="prop">RANK_COLORS</span>: <span class="t">Record</span>&lt;<span class="t">string</span>, <span class="t">string</span>&gt; = {
+  <span class="prop">LURKER</span>:        <span class="s">'#4a5568'</span>,
+  <span class="prop">CURIOUS</span>:       <span class="s">'#718096'</span>,
+  <span class="prop">DIGGER</span>:        <span class="s">'#0891b2'</span>,
+  <span class="prop">TRUTH_SEEKER</span>:  <span class="s">'#7c3aed'</span>,
+  <span class="prop">DEEP_DIVER</span>:    <span class="s">'#0891b2'</span>,
+  <span class="prop">RABBIT_MASTER</span>: <span class="s">'#d97706'</span>,
+}
+
+<span class="k">interface</span> <span class="t">Props</span> {
+  <span class="prop">thread</span>:     <span class="t">TThread</span>
+  <span class="prop">onTagClick</span>: (tag: <span class="t">string</span>) =&gt; <span class="t">void</span>
+}
+
+<span class="k">export default function</span> <span class="fn">ThreadCard</span>({ thread, onTagClick }: <span class="t">Props</span>) {
+  <span class="c">// Depth colour: green = shallow, amber = mid, red = deep</span>
+  <span class="k">const</span> <span class="prop">depthColor</span> =
+    thread.<span class="prop">totalLevels</span> &gt;= <span class="num">10</span> ? <span class="s">'#dc2626'</span> :
+    thread.<span class="prop">totalLevels</span> &gt;= <span class="num">5</span>  ? <span class="s">'#d97706'</span> : <span class="s">'#059669'</span>
+
+  <span class="k">return</span> (
+    &lt;<span class="t">Link</span> <span class="prop">href</span>={`/hole/${thread.<span class="prop">slug</span>}`} <span class="prop">className</span>=<span class="s">"thread-card"</span>&gt;
+
+      {thread.<span class="prop">coverImageUrl</span> &amp;&amp; (
+        &lt;<span class="jsx">div</span>
+          <span class="prop">className</span>=<span class="s">"card-cover"</span>
+          <span class="prop">style</span>={{ <span class="prop">backgroundImage</span>: `url(${thread.<span class="prop">coverImageUrl</span>})` }}
+        /&gt;
+      )}
+
+      &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"card-body"</span>&gt;
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"card-top"</span>&gt;
+          &lt;<span class="jsx">span</span>
+            <span class="prop">className</span>=<span class="s">"card-rank"</span>
+            <span class="prop">style</span>={{ <span class="prop">color</span>: <span class="prop">RANK_COLORS</span>[thread.<span class="prop">author</span>.<span class="prop">rank</span>] ?? <span class="s">'#4a5568'</span> }}
+          &gt;
+            {thread.<span class="prop">author</span>.<span class="prop">rank</span>.<span class="fn">replace</span>(<span class="s">'_'</span>, <span class="s">' '</span>)}
+          &lt;/<span class="jsx">span</span>&gt;
+          &lt;<span class="jsx">span</span> <span class="prop">className</span>=<span class="s">"card-solve-count"</span>&gt;{thread.<span class="prop">solveCount</span>} solved&lt;/<span class="jsx">span</span>&gt;
+        &lt;/<span class="jsx">div</span>&gt;
+
+        &lt;<span class="jsx">h2</span> <span class="prop">className</span>=<span class="s">"card-title"</span>&gt;{thread.<span class="prop">title</span>}&lt;/<span class="jsx">h2</span>&gt;
+        &lt;<span class="jsx">p</span>  <span class="prop">className</span>=<span class="s">"card-teaser"</span>&gt;{thread.<span class="prop">teaser</span>}&lt;/<span class="jsx">p</span>&gt;
+
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"card-footer"</span>&gt;
+          &lt;<span class="jsx">span</span> <span class="prop">className</span>=<span class="s">"card-author"</span>&gt;@{thread.<span class="prop">author</span>.<span class="prop">username</span>}&lt;/<span class="jsx">span</span>&gt;
+          &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"card-stats"</span>&gt;
+            &lt;<span class="jsx">span</span> <span class="prop">style</span>={{ <span class="prop">color</span>: depthColor }}&gt;↓ {thread.<span class="prop">totalLevels</span>}&lt;/<span class="jsx">span</span>&gt;
+            &lt;<span class="jsx">span</span>&gt;{thread.<span class="prop">viewCount</span>} views&lt;/<span class="jsx">span</span>&gt;
+            &lt;<span class="jsx">span</span>&gt;▲ {thread.<span class="prop">voteCount</span>}&lt;/<span class="jsx">span</span>&gt;
+          &lt;/<span class="jsx">div</span>&gt;
+        &lt;/<span class="jsx">div</span>&gt;
+
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"card-tags"</span>&gt;
+          {thread.<span class="prop">tags</span>.<span class="fn">map</span>(tag =&gt; (
+            &lt;<span class="jsx">span</span>
+              <span class="prop">key</span>={tag}
+              <span class="prop">className</span>=<span class="s">"card-tag"</span>
+              <span class="prop">onClick</span>={e =&gt; { e.<span class="fn">preventDefault</span>(); <span class="fn">onTagClick</span>(tag) }}
+            &gt;
+              #{tag}
+            &lt;/<span class="jsx">span</span>&gt;
+          ))}
+        &lt;/<span class="jsx">div</span>&gt;
+
+      &lt;/<span class="jsx">div</span>&gt;
+    &lt;/<span class="t">Link</span>&gt;
+  )
+}</div>
+    </div>
+
+    <!-- components/PuzzleBox.tsx -->
+    <div class="code-pane" id="pane-puzzle-box">
+      <div class="line-numbers" id="ln-puzzle-box"></div>
+      <div class="code-content"><span class="c">// components/PuzzleBox.tsx
+// The puzzle input widget. Handles submission, wrong-answer shake,
+// progressive hint display, attempt bar, and solved state.</span>
+
+<span class="imp">import</span> { <span class="fn">useState</span>, <span class="fn">useRef</span> } <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> <span class="fn">useAttempt</span>           <span class="imp">from</span> <span class="s">'@/hooks/useAttempt'</span>
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">AttemptResponse</span> } <span class="imp">from</span> <span class="s">'@/types'</span>
+
+<span class="k">interface</span> <span class="t">PuzzleProps</span> {
+  <span class="prop">puzzle</span>: {
+    <span class="prop">id</span>:             <span class="t">string</span>
+    <span class="prop">type</span>:           <span class="t">string</span>
+    <span class="prop">question</span>:       <span class="t">string</span>
+    <span class="prop">maxAttempts</span>:    <span class="t">number</span> | <span class="k">null</span>
+    <span class="prop">externalClueUrl</span>:<span class="t">string</span> | <span class="k">null</span>
+  }
+  <span class="prop">isUnlocked</span>: <span class="t">boolean</span>
+  <span class="prop">onSolve</span>:    (result: <span class="t">AttemptResponse</span>) =&gt; <span class="t">void</span>
+}
+
+<span class="k">export default function</span> <span class="fn">PuzzleBox</span>({ puzzle, isUnlocked, onSolve }: <span class="t">PuzzleProps</span>) {
+  <span class="k">const</span> [answer,      <span class="fn">setAnswer</span>]      = <span class="fn">useState</span>(<span class="s">''</span>)
+  <span class="k">const</span> [lastResult,  <span class="fn">setLastResult</span>]  = <span class="fn">useState</span>&lt;<span class="t">AttemptResponse</span> | <span class="k">null</span>&gt;(<span class="k">null</span>)
+  <span class="k">const</span> [shaking,     <span class="fn">setShaking</span>]     = <span class="fn">useState</span>(<span class="k">false</span>)
+  <span class="k">const</span> <span class="prop">inputRef</span>                       = <span class="fn">useRef</span>&lt;<span class="t">HTMLInputElement</span>&gt;(<span class="k">null</span>)
+
+  <span class="k">const</span> { submit, <span class="prop">isSubmitting</span> } = <span class="fn">useAttempt</span>(puzzle.<span class="prop">id</span>)
+
+  <span class="k">const</span> <span class="fn">handleSubmit</span> = <span class="k">async</span> (e: <span class="t">React</span>.<span class="t">FormEvent</span>) =&gt; {
+    e.<span class="fn">preventDefault</span>()
+    <span class="k">if</span> (!answer.<span class="fn">trim</span>() || isSubmitting) <span class="k">return</span>
+
+    <span class="k">const</span> <span class="prop">result</span> = <span class="k">await</span> <span class="fn">submit</span>(answer)
+    <span class="fn">setLastResult</span>(result)
+
+    <span class="k">if</span> (result.<span class="prop">status</span> === <span class="s">'correct'</span>) {
+      <span class="fn">onSolve</span>(result)
+    } <span class="k">else if</span> (result.<span class="prop">status</span> === <span class="s">'wrong'</span>) {
+      <span class="fn">setShaking</span>(<span class="k">true</span>)
+      <span class="fn">setTimeout</span>(() =&gt; <span class="fn">setShaking</span>(<span class="k">false</span>), <span class="num">600</span>)
+      <span class="fn">setAnswer</span>(<span class="s">''</span>)
+      inputRef.<span class="prop">current</span>?.<span class="fn">focus</span>()
+    }
+  }
+
+  <span class="c">// Already solved — show static badge instead of input</span>
+  <span class="k">if</span> (isUnlocked) {
+    <span class="k">return</span> (
+      &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"puzzle-box solved"</span>&gt;
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"solved-badge"</span>&gt;✓ solved&lt;/<span class="jsx">div</span>&gt;
+      &lt;/<span class="jsx">div</span>&gt;
+    )
+  }
+
+  <span class="k">const</span> <span class="prop">wrongResult</span>   = lastResult?.<span class="prop">status</span> === <span class="s">'wrong'</span> ? lastResult : <span class="k">null</span>
+  <span class="k">const</span> <span class="prop">attemptsUsed</span>  = wrongResult?.<span class="prop">attemptsUsed</span>  ?? <span class="num">0</span>
+  <span class="k">const</span> <span class="prop">attemptsLeft</span>  = wrongResult?.<span class="prop">attemptsRemaining</span>
+
+  <span class="k">return</span> (
+    &lt;<span class="jsx">div</span> <span class="prop">className</span>={`puzzle-box ${shaking ? <span class="s">'shake'</span> : <span class="s">''</span>}`}&gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"puzzle-type"</span>&gt;{puzzle.<span class="prop">type</span>.<span class="fn">replace</span>(<span class="s">'_'</span>, <span class="s">' '</span>)}&lt;/<span class="jsx">div</span>&gt;
+      &lt;<span class="jsx">p</span>   <span class="prop">className</span>=<span class="s">"puzzle-question"</span>&gt;{puzzle.<span class="prop">question</span>}&lt;/<span class="jsx">p</span>&gt;
+
+      {puzzle.<span class="prop">externalClueUrl</span> &amp;&amp; (
+        &lt;<span class="jsx">a</span>
+          <span class="prop">href</span>={puzzle.<span class="prop">externalClueUrl</span>}
+          <span class="prop">target</span>=<span class="s">"_blank"</span>
+          <span class="prop">rel</span>=<span class="s">"noopener noreferrer"</span>
+          <span class="prop">className</span>=<span class="s">"external-link"</span>
+        &gt;
+          🔗 external clue
+        &lt;/<span class="jsx">a</span>&gt;
+      )}
+
+      &lt;<span class="jsx">form</span> <span class="prop">onSubmit</span>={<span class="fn">handleSubmit</span>} <span class="prop">className</span>=<span class="s">"puzzle-form"</span>&gt;
+        &lt;<span class="jsx">input</span>
+          <span class="prop">ref</span>={inputRef}
+          <span class="prop">value</span>={answer}
+          <span class="prop">onChange</span>={e =&gt; <span class="fn">setAnswer</span>(e.<span class="prop">target</span>.<span class="prop">value</span>)}
+          <span class="prop">placeholder</span>=<span class="s">"your answer..."</span>
+          <span class="prop">className</span>={`answer-input ${wrongResult ? <span class="s">'wrong'</span> : <span class="s">''</span>}`}
+          <span class="prop">autoComplete</span>=<span class="s">"off"</span>
+          <span class="prop">spellCheck</span>={<span class="k">false</span>}
+          <span class="prop">disabled</span>={isSubmitting}
+        /&gt;
+        &lt;<span class="jsx">button</span>
+          <span class="prop">type</span>=<span class="s">"submit"</span>
+          <span class="prop">className</span>=<span class="s">"submit-btn"</span>
+          <span class="prop">disabled</span>={isSubmitting || !answer.<span class="fn">trim</span>()}
+        &gt;
+          {isSubmitting ? <span class="s">'...'</span> : <span class="s">'submit'</span>}
+        &lt;/<span class="jsx">button</span>&gt;
+      &lt;/<span class="jsx">form</span>&gt;
+
+      {wrongResult &amp;&amp; (
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"attempt-feedback"</span>&gt;
+          &lt;<span class="jsx">span</span> <span class="prop">className</span>=<span class="s">"wrong-label"</span>&gt;✗ incorrect&lt;/<span class="jsx">span</span>&gt;
+          {attemptsLeft !== <span class="k">null</span> &amp;&amp; (
+            &lt;<span class="jsx">span</span> <span class="prop">className</span>=<span class="s">"attempts-left"</span>&gt;{attemptsLeft} attempts remaining&lt;/<span class="jsx">span</span>&gt;
+          )}
+          {wrongResult.<span class="prop">hint</span> &amp;&amp; (
+            &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"hint-reveal"</span>&gt;💡 {wrongResult.<span class="prop">hint</span>}&lt;/<span class="jsx">div</span>&gt;
+          )}
+        &lt;/<span class="jsx">div</span>&gt;
+      )}
+
+      {puzzle.<span class="prop">maxAttempts</span> &amp;&amp; attemptsUsed &gt; <span class="num">0</span> &amp;&amp; (
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"attempt-bar"</span>&gt;
+          &lt;<span class="jsx">div</span>
+            <span class="prop">className</span>=<span class="s">"attempt-bar-fill"</span>
+            <span class="prop">style</span>={{ <span class="prop">width</span>: `${(attemptsUsed / puzzle.<span class="prop">maxAttempts</span>) * <span class="num">100</span>}%` }}
+          /&gt;
+        &lt;/<span class="jsx">div</span>&gt;
+      )}
+
+    &lt;/<span class="jsx">div</span>&gt;
+  )
+}</div>
+    </div>
+
+    <!-- components/LevelContent.tsx -->
+    <div class="code-pane" id="pane-level-content">
+      <div class="line-numbers" id="ln-level-content"></div>
+      <div class="code-content"><span class="c">// components/LevelContent.tsx
+// Renders level story content as markdown.
+// Supports GFM (tables, strikethrough, task lists), code blocks
+// with syntax highlighting, and an optional media gallery.</span>
+
+<span class="imp">import</span> <span class="t">ReactMarkdown</span>                     <span class="imp">from</span> <span class="s">'react-markdown'</span>
+<span class="imp">import</span> <span class="fn">remarkGfm</span>                         <span class="imp">from</span> <span class="s">'remark-gfm'</span>
+<span class="imp">import</span> { <span class="t">Prism</span> <span class="k">as</span> <span class="t">SyntaxHighlighter</span> }  <span class="imp">from</span> <span class="s">'react-syntax-highlighter'</span>
+<span class="imp">import</span> { oneDark }                        <span class="imp">from</span> <span class="s">'react-syntax-highlighter/dist/cjs/styles/prism'</span>
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">Components</span> }              <span class="imp">from</span> <span class="s">'react-markdown'</span>
+
+<span class="k">interface</span> <span class="t">Props</span> {
+  <span class="prop">content</span>:   <span class="t">string</span>
+  <span class="prop">mediaUrls</span>: <span class="t">string</span>[]
+}
+
+<span class="c">// Custom renderers for react-markdown</span>
+<span class="k">const</span> <span class="prop">components</span>: <span class="t">Components</span> = {
+  <span class="fn">code</span>({ node, inline, className, children, ...props }) {
+    <span class="k">const</span> <span class="prop">match</span> = /language-(\w+)/.<span class="fn">exec</span>(className || <span class="s">''</span>)
+    <span class="k">if</span> (!inline &amp;&amp; match) {
+      <span class="k">return</span> (
+        &lt;<span class="t">SyntaxHighlighter</span>
+          <span class="prop">style</span>={oneDark}
+          <span class="prop">language</span>={match[<span class="num">1</span>]}
+          <span class="prop">PreTag</span>=<span class="s">"div"</span>
+          {...props}
+        &gt;
+          {<span class="t">String</span>(children).<span class="fn">replace</span>(/\n$/, <span class="s">''</span>)}
+        &lt;/<span class="t">SyntaxHighlighter</span>&gt;
+      )
+    }
+    <span class="k">return</span> &lt;<span class="jsx">code</span> <span class="prop">className</span>={className} {...props}&gt;{children}&lt;/<span class="jsx">code</span>&gt;
+  },
+
+  <span class="c">// Open all external links in a new tab</span>
+  <span class="fn">a</span>({ href, children }) {
+    <span class="k">const</span> <span class="prop">isExternal</span> = href?.startsWith(<span class="s">'http'</span>)
+    <span class="k">return</span> (
+      &lt;<span class="jsx">a</span>
+        <span class="prop">href</span>={href}
+        <span class="prop">target</span>={isExternal ? <span class="s">'_blank'</span> : <span class="k">undefined</span>}
+        <span class="prop">rel</span>={isExternal ? <span class="s">'noopener noreferrer'</span> : <span class="k">undefined</span>}
+      &gt;
+        {children}
+      &lt;/<span class="jsx">a</span>&gt;
+    )
+  },
+}
+
+<span class="k">export default function</span> <span class="fn">LevelContent</span>({ content, mediaUrls }: <span class="t">Props</span>) {
+  <span class="k">return</span> (
+    &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"level-content prose"</span>&gt;
+      &lt;<span class="t">ReactMarkdown</span> <span class="prop">remarkPlugins</span>={[<span class="fn">remarkGfm</span>]} <span class="prop">components</span>={<span class="prop">components</span>}&gt;
+        {content}
+      &lt;/<span class="t">ReactMarkdown</span>&gt;
+
+      {mediaUrls.<span class="prop">length</span> &gt; <span class="num">0</span> &amp;&amp; (
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"media-gallery"</span>&gt;
+          {mediaUrls.<span class="fn">map</span>((url, i) =&gt; (
+            &lt;<span class="jsx">img</span>
+              <span class="prop">key</span>={i}
+              <span class="prop">src</span>={url}
+              <span class="prop">alt</span>={`media ${i + <span class="num">1</span>}`}
+              <span class="prop">className</span>=<span class="s">"media-item"</span>
+              <span class="prop">loading</span>=<span class="s">"lazy"</span>
+            /&gt;
+          ))}
+        &lt;/<span class="jsx">div</span>&gt;
+      )}
+    &lt;/<span class="jsx">div</span>&gt;
+  )
+}</div>
+    </div>
+
+    <!-- components/XPToast.tsx -->
+    <div class="code-pane" id="pane-xp-toast">
+      <div class="line-numbers" id="ln-xp-toast"></div>
+      <div class="code-content"><span class="c">// components/XPToast.tsx
+// Animated overlay that fires after every correct answer.
+// Shows: XP gained · rank-up banner · new badge chips · final completion.
+// Auto-dismisses after 4 seconds or on click.</span>
+
+<span class="imp">import</span> { <span class="fn">useEffect</span>, <span class="fn">useState</span> } <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">AttemptResponse</span> }  <span class="imp">from</span> <span class="s">'@/types'</span>
+
+<span class="k">type</span> <span class="t">CorrectResult</span> = <span class="t">Extract</span>&lt;<span class="t">AttemptResponse</span>, { <span class="prop">status</span>: <span class="s">'correct'</span> }&gt;
+
+<span class="k">interface</span> <span class="t">Props</span> {
+  <span class="prop">result</span>:    <span class="t">CorrectResult</span>
+  <span class="prop">onDismiss</span>: () =&gt; <span class="t">void</span>
+}
+
+<span class="k">const</span> <span class="prop">RANK_LABELS</span>: <span class="t">Record</span>&lt;<span class="t">string</span>, <span class="t">string</span>&gt; = {
+  <span class="prop">LURKER</span>:        <span class="s">'Lurker'</span>,
+  <span class="prop">CURIOUS</span>:       <span class="s">'Curious'</span>,
+  <span class="prop">DIGGER</span>:        <span class="s">'Digger'</span>,
+  <span class="prop">TRUTH_SEEKER</span>:  <span class="s">'Truth Seeker'</span>,
+  <span class="prop">DEEP_DIVER</span>:    <span class="s">'Deep Diver'</span>,
+  <span class="prop">RABBIT_MASTER</span>: <span class="s">'Rabbit Master'</span>,
+}
+
+<span class="k">export default function</span> <span class="fn">XPToast</span>({ result, onDismiss }: <span class="t">Props</span>) {
+  <span class="k">const</span> [visible, <span class="fn">setVisible</span>] = <span class="fn">useState</span>(<span class="k">false</span>)
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="c">// Delay one frame so the CSS transition triggers properly</span>
+    <span class="k">const</span> <span class="prop">raf</span> = <span class="fn">requestAnimationFrame</span>(() =&gt; <span class="fn">setVisible</span>(<span class="k">true</span>))
+    <span class="k">const</span> <span class="prop">timer</span> = <span class="fn">setTimeout</span>(onDismiss, <span class="num">4000</span>)
+    <span class="k">return</span> () =&gt; {
+      <span class="fn">cancelAnimationFrame</span>(raf)
+      <span class="fn">clearTimeout</span>(timer)
+    }
+  }, [onDismiss])
+
+  <span class="k">return</span> (
+    &lt;<span class="jsx">div</span>
+      <span class="prop">className</span>={`xp-toast ${visible ? <span class="s">'visible'</span> : <span class="s">''</span>}`}
+      <span class="prop">onClick</span>={onDismiss}
+      <span class="prop">role</span>=<span class="s">"status"</span>
+      <span class="prop">aria-live</span>=<span class="s">"polite"</span>
+    &gt;
+
+      &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"toast-xp"</span>&gt;+{result.<span class="prop">xpEarned</span>} XP&lt;/<span class="jsx">div</span>&gt;
+
+      {result.<span class="prop">isFinalLevel</span> &amp;&amp; (
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"toast-complete"</span>&gt;
+          🕳️ Rabbit Hole Complete!
+        &lt;/<span class="jsx">div</span>&gt;
+      )}
+
+      {result.<span class="prop">rankUp</span> &amp;&amp; result.<span class="prop">newRank</span> &amp;&amp; (
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"toast-rankup"</span>&gt;
+          ⬆ Rank Up → {<span class="prop">RANK_LABELS</span>[result.<span class="prop">newRank</span>]}
+        &lt;/<span class="jsx">div</span>&gt;
+      )}
+
+      {result.<span class="prop">newBadges</span>.<span class="prop">length</span> &gt; <span class="num">0</span> &amp;&amp; (
+        &lt;<span class="jsx">div</span> <span class="prop">className</span>=<span class="s">"toast-badges"</span>&gt;
+          {result.<span class="prop">newBadges</span>.<span class="fn">map</span>(slug =&gt; (
+            &lt;<span class="jsx">div</span> <span class="prop">key</span>={slug} <span class="prop">className</span>=<span class="s">"toast-badge-chip"</span>&gt;
+              🏅 {slug}
+            &lt;/<span class="jsx">div</span>&gt;
+          ))}
+        &lt;/<span class="jsx">div</span>&gt;
+      )}
+
+    &lt;/<span class="jsx">div</span>&gt;
+  )
+}</div>
+    </div>
+
+    <!-- hooks/useAttempt.ts -->
+    <div class="code-pane" id="pane-use-attempt">
+      <div class="line-numbers" id="ln-use-attempt"></div>
+      <div class="code-content"><span class="c">// hooks/useAttempt.ts
+// Encapsulates the fetch + loading state for puzzle submissions.
+// PuzzleBox calls this so it stays free of fetch logic.
+// Returns a stable `submit` reference (useCallback) — safe to use in deps.</span>
+
+<span class="imp">import</span> { <span class="fn">useState</span>, <span class="fn">useCallback</span> } <span class="imp">from</span> <span class="s">'react'</span>
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">AttemptResponse</span> }     <span class="imp">from</span> <span class="s">'@/types'</span>
+
+<span class="k">interface</span> <span class="t">UseAttemptReturn</span> {
+  <span class="prop">submit</span>:       (answer: <span class="t">string</span>) =&gt; <span class="t">Promise</span>&lt;<span class="t">AttemptResponse</span>&gt;
+  <span class="prop">isSubmitting</span>: <span class="t">boolean</span>
+  <span class="prop">error</span>:        <span class="t">string</span> | <span class="k">null</span>
+}
+
+<span class="k">export default function</span> <span class="fn">useAttempt</span>(puzzleId: <span class="t">string</span>): <span class="t">UseAttemptReturn</span> {
+  <span class="k">const</span> [isSubmitting, <span class="fn">setIsSubmitting</span>] = <span class="fn">useState</span>(<span class="k">false</span>)
+  <span class="k">const</span> [error,        <span class="fn">setError</span>]        = <span class="fn">useState</span>&lt;<span class="t">string</span> | <span class="k">null</span>&gt;(<span class="k">null</span>)
+
+  <span class="k">const</span> <span class="fn">submit</span> = <span class="fn">useCallback</span>(
+    <span class="k">async</span> (answer: <span class="t">string</span>): <span class="t">Promise</span>&lt;<span class="t">AttemptResponse</span>&gt; =&gt; {
+      <span class="fn">setIsSubmitting</span>(<span class="k">true</span>)
+      <span class="fn">setError</span>(<span class="k">null</span>)
+
+      <span class="k">try</span> {
+        <span class="k">const</span> <span class="prop">res</span> = <span class="k">await</span> <span class="fn">fetch</span>(`/api/puzzle/${puzzleId}/attempt`, {
+          <span class="prop">method</span>:  <span class="s">'POST'</span>,
+          <span class="prop">headers</span>: { <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span> },
+          <span class="prop">body</span>:    <span class="t">JSON</span>.<span class="fn">stringify</span>({ answer }),
+        })
+
+        <span class="k">const</span> <span class="prop">data</span> = <span class="k">await</span> res.<span class="fn">json</span>()
+
+        <span class="k">if</span> (res.<span class="prop">status</span> === <span class="num">401</span>) {
+          <span class="k">throw new</span> <span class="fn">Error</span>(<span class="s">'Sign in to attempt puzzles'</span>)
+        }
+        <span class="k">if</span> (res.<span class="prop">status</span> === <span class="num">429</span>) {
+          <span class="k">throw new</span> <span class="fn">Error</span>(`Attempt limit reached${data.<span class="prop">hint</span> ? ` — ${data.<span class="prop">hint</span>}` : <span class="s">''</span>}`)
+        }
+        <span class="c">// 400 = wrong answer — this is a valid API response, NOT a JS error</span>
+        <span class="k">if</span> (!res.<span class="prop">ok</span> &amp;&amp; res.<span class="prop">status</span> !== <span class="num">400</span>) {
+          <span class="k">throw new</span> <span class="fn">Error</span>(data.<span class="prop">error</span> ?? <span class="s">'Something went wrong'</span>)
+        }
+
+        <span class="k">return</span> data <span class="k">as</span> <span class="t">AttemptResponse</span>
+
+      } <span class="k">catch</span> (err) {
+        <span class="k">const</span> <span class="prop">msg</span> = err <span class="k">instanceof</span> <span class="t">Error</span> ? err.<span class="prop">message</span> : <span class="s">'Network error'</span>
+        <span class="fn">setError</span>(msg)
+        <span class="k">throw</span> err
+      } <span class="k">finally</span> {
+        <span class="fn">setIsSubmitting</span>(<span class="k">false</span>)
+      }
+    },
+    [puzzleId]  <span class="c">// recreate only when puzzleId changes</span>
+  )
+
+  <span class="k">return</span> { submit, isSubmitting, error }
+}</div>
+    </div>
+
+    <!-- middleware.ts -->
+    <div class="code-pane" id="pane-middleware">
+      <div class="line-numbers" id="ln-middleware"></div>
+      <div class="code-content"><span class="c">// middleware.ts
+// Edge middleware — runs before every matched request on the CDN edge.
+// Protects creator routes. Redirects unauthenticated users to sign-in.
+// Must NOT import Node.js APIs — edge runtime only.</span>
+
+<span class="imp">import</span> { <span class="fn">withAuth</span> }     <span class="imp">from</span> <span class="s">'next-auth/middleware'</span>
+<span class="imp">import</span> { <span class="t">NextResponse</span> } <span class="imp">from</span> <span class="s">'next/server'</span>
+
+<span class="k">export default</span> <span class="fn">withAuth</span>(
+  <span class="c">// This function runs AFTER the authorized() callback returns true.</span>
+  <span class="k">function</span> <span class="fn">middleware</span>(req) {
+    <span class="k">return</span> <span class="t">NextResponse</span>.<span class="fn">next</span>()
+  },
+  {
+    <span class="prop">callbacks</span>: {
+      <span class="c">// Return true = allow. Return false = redirect to signIn page.</span>
+      <span class="fn">authorized</span>({ token }) {
+        <span class="k">return</span> !!token
+      },
+    },
+    <span class="prop">pages</span>: {
+      <span class="prop">signIn</span>: <span class="s">'/auth/signin'</span>,
+    },
+  }
+)
+
+<span class="c">// Routes that require authentication</span>
+<span class="k">export const</span> <span class="prop">config</span> = {
+  <span class="prop">matcher</span>: [
+    <span class="s">'/create/:path*'</span>,         <span class="c">// create wizard</span>
+    <span class="s">'/profile/:path*/edit'</span>,   <span class="c">// profile edit page</span>
+  ],
+}</div>
+    </div>
+
+    <!-- next.config.js -->
+    <div class="code-pane" id="pane-next-config">
+      <div class="line-numbers" id="ln-next-config"></div>
+      <div class="code-content"><span class="c">// next.config.js
+// Next.js configuration: image domains, security headers, redirects.</span>
+
+<span class="c">/** <span class="prop">@type</span> {import('next').<span class="t">NextConfig</span>} */</span>
+<span class="k">const</span> <span class="prop">nextConfig</span> = {
+  <span class="prop">reactStrictMode</span>: <span class="k">true</span>,
+
+  <span class="prop">images</span>: {
+    <span class="c">// Allow next/image to serve from these domains without extra config</span>
+    <span class="prop">domains</span>: [
+      <span class="s">'avatars.githubusercontent.com'</span>,   <span class="c">// GitHub OAuth avatars</span>
+      <span class="s">'lh3.googleusercontent.com'</span>,        <span class="c">// Google OAuth avatars</span>
+      <span class="s">'res.cloudinary.com'</span>,               <span class="c">// level media uploads</span>
+    ],
+  },
+
+  <span class="k">async</span> <span class="fn">headers</span>() {
+    <span class="k">return</span> [
+      {
+        <span class="c">// Apply security headers to all API routes</span>
+        <span class="prop">source</span>: <span class="s">'/api/:path*'</span>,
+        <span class="prop">headers</span>: [
+          { <span class="prop">key</span>: <span class="s">'X-Content-Type-Options'</span>, <span class="prop">value</span>: <span class="s">'nosniff'</span> },
+          { <span class="prop">key</span>: <span class="s">'X-Frame-Options'</span>,        <span class="prop">value</span>: <span class="s">'DENY'</span> },
+          { <span class="prop">key</span>: <span class="s">'X-XSS-Protection'</span>,      <span class="prop">value</span>: <span class="s">'1; mode=block'</span> },
+        ],
+      },
+      {
+        <span class="c">// Prevent clickjacking on all pages</span>
+        <span class="prop">source</span>: <span class="s">'/:path*'</span>,
+        <span class="prop">headers</span>: [
+          { <span class="prop">key</span>: <span class="s">'X-Frame-Options'</span>, <span class="prop">value</span>: <span class="s">'SAMEORIGIN'</span> },
+        ],
+      },
+    ]
+  },
+
+  <span class="k">async</span> <span class="fn">redirects</span>() {
+    <span class="k">return</span> [
+      {
+        <span class="c">// Legacy URL support: /thread/:slug → /hole/:slug</span>
+        <span class="prop">source</span>:      <span class="s">'/thread/:slug'</span>,
+        <span class="prop">destination</span>: <span class="s">'/hole/:slug'</span>,
+        <span class="prop">permanent</span>:   <span class="k">true</span>,
+      },
+    ]
+  },
+}
+
+module.<span class="prop">exports</span> = nextConfig</div>
+    </div>
+
+    <!-- tailwind.config.ts -->
+    <div class="code-pane" id="pane-tailwind">
+      <div class="line-numbers" id="ln-tailwind"></div>
+      <div class="code-content"><span class="c">// tailwind.config.ts
+// Extends Tailwind with rabbit-hole design tokens, custom animations,
+// and the typography plugin for markdown prose rendering.</span>
+
+<span class="imp">import</span> <span class="k">type</span> { <span class="t">Config</span> } <span class="imp">from</span> <span class="s">'tailwindcss'</span>
+
+<span class="k">const</span> <span class="prop">config</span>: <span class="t">Config</span> = {
+  <span class="prop">content</span>: [
+    <span class="s">'./pages/**/*.{ts,tsx}'</span>,
+    <span class="s">'./components/**/*.{ts,tsx}'</span>,
+    <span class="s">'./hooks/**/*.ts'</span>,
+  ],
+
+  <span class="prop">theme</span>: {
+    <span class="prop">extend</span>: {
+
+      <span class="prop">fontFamily</span>: {
+        <span class="prop">mono</span>:    [<span class="s">'JetBrains Mono'</span>, <span class="s">'monospace'</span>],
+        <span class="prop">display</span>: [<span class="s">'Clash Display'</span>, <span class="s">'sans-serif'</span>],
+      },
+
+      <span class="prop">colors</span>: {
+        <span class="prop">bg</span>:      <span class="s">'#06060f'</span>,
+        <span class="prop">surface</span>: <span class="s">'#0c0c1a'</span>,
+        <span class="prop">accent</span>:  <span class="s">'#6d28d9'</span>,
+        <span class="prop">accent2</span>: <span class="s">'#0891b2'</span>,
+        <span class="prop">accent3</span>: <span class="s">'#d97706'</span>,
+        <span class="prop">hole</span>:    <span class="s">'#059669'</span>,
+      },
+
+      <span class="prop">animation</span>: {
+        <span class="prop">breathe</span>:   <span class="s">'breathe 3s ease-in-out infinite'</span>,
+        <span class="prop">shake</span>:     <span class="s">'shake 0.5s ease-in-out'</span>,
+        <span class="prop">slideUp</span>:   <span class="s">'slideUp 0.3s ease-out'</span>,
+        <span class="prop">fadeIn</span>:    <span class="s">'fadeIn 0.2s ease-out'</span>,
+      },
+
+      <span class="prop">keyframes</span>: {
+        <span class="prop">breathe</span>: {
+          <span class="s">'0%, 100%'</span>: { <span class="prop">opacity</span>: <span class="s">'1'</span> },
+          <span class="s">'50%'</span>:      { <span class="prop">opacity</span>: <span class="s">'0.3'</span> },
+        },
+        <span class="prop">shake</span>: {
+          <span class="s">'0%, 100%'</span>: { <span class="prop">transform</span>: <span class="s">'translateX(0)'</span> },
+          <span class="s">'20%, 60%'</span>: { <span class="prop">transform</span>: <span class="s">'translateX(-8px)'</span> },
+          <span class="s">'40%, 80%'</span>: { <span class="prop">transform</span>: <span class="s">'translateX(8px)'</span> },
+        },
+        <span class="prop">slideUp</span>: {
+          <span class="prop">from</span>: { <span class="prop">opacity</span>: <span class="s">'0'</span>, <span class="prop">transform</span>: <span class="s">'translateY(20px)'</span> },
+          <span class="prop">to</span>:   { <span class="prop">opacity</span>: <span class="s">'1'</span>, <span class="prop">transform</span>: <span class="s">'translateY(0)'</span> },
+        },
+        <span class="prop">fadeIn</span>: {
+          <span class="prop">from</span>: { <span class="prop">opacity</span>: <span class="s">'0'</span> },
+          <span class="prop">to</span>:   { <span class="prop">opacity</span>: <span class="s">'1'</span> },
+        },
+      },
+
+      <span class="prop">typography</span>: (theme: <span class="t">Function</span>) =&gt; ({
+        <span class="prop">DEFAULT</span>: {
+          <span class="prop">css</span>: {
+            <span class="prop">color</span>:          theme(<span class="s">'colors.slate.300'</span>),
+            <span class="prop">maxWidth</span>:       <span class="s">'none'</span>,
+            <span class="prop">a</span>:              { <span class="prop">color</span>: theme(<span class="s">'colors.sky.400'</span>) },
+            <span class="prop">strong</span>:         { <span class="prop">color</span>: theme(<span class="s">'colors.slate.100'</span>) },
+            <span class="prop">h1</span>:             { <span class="prop">color</span>: theme(<span class="s">'colors.slate.100'</span>) },
+            <span class="prop">h2</span>:             { <span class="prop">color</span>: theme(<span class="s">'colors.slate.100'</span>) },
+            <span class="prop">code</span>:           { <span class="prop">color</span>: theme(<span class="s">'colors.emerald.400'</span>) },
+            <span class="prop">'code::before'</span>: { <span class="prop">content</span>: <span class="s">'none'</span> },
+            <span class="prop">'code::after'</span>:  { <span class="prop">content</span>: <span class="s">'none'</span> },
+          },
+        },
+      }),
+    },
+  },
+
+  <span class="prop">plugins</span>: [
+    <span class="fn">require</span>(<span class="s">'@tailwindcss/typography'</span>),
+  ],
+}
+
+<span class="k">export default</span> config</div>
+    </div>
+
+  </div><!-- end editor-area -->
+
+  <!-- EXPLANATION PANEL -->
+  <div class="explain-panel">
+    <div class="explain-header">
+      <span>NOTES</span>
+      <span id="current-file" style="color:var(--green);font-size:10px">auth/[...nextauth].ts</span>
+    </div>
+    <div class="explain-body">
+
+      <div class="explain-section active" id="notes-nextauth">
+        <div class="explain-title">NextAuth Configuration</div>
+        <p class="explain-p">Two OAuth providers (GitHub + Google) with the Prisma adapter. Sessions are stored in the database, not as JWTs — this lets you revoke sessions server-side and attach any user data to the session object.</p>
+        <div class="explain-note">The <code style="color:var(--green)">session</code> callback attaches <code style="color:var(--green)">user.id</code> to every session. Without it, the default NextAuth session has no ID — just email, name, image. Every API route in Phase 2 depends on <code style="color:var(--green)">session.user.id</code>.</div>
+        <p class="explain-p">The <code style="color:var(--green)">signIn</code> callback auto-generates a username on first OAuth sign-in. It builds it from the display name, strips non-alphanumeric chars, and appends 4 random digits to avoid collisions.</p>
+        <div class="explain-warn">⚠️ <code style="color:var(--green)">authOptions</code> is exported so <code style="color:var(--green)">getServerSession(req, res, authOptions)</code> can be called in any API route. Never call it without passing <code style="color:var(--green)">authOptions</code> — it'll return null every time.</div>
+      </div>
+
+      <div class="explain-section" id="notes-feed">
+        <div class="explain-title">Feed Page</div>
+        <p class="explain-p">Server-side renders the session (so the page knows if you're logged in on first load), then uses SWR for client-side data fetching so sorting and filtering feel instant.</p>
+        <div class="explain-note"><code style="color:var(--green)">keepPreviousData: true</code> in SWR means the old results stay visible while the new ones load — no jarring blank state on every sort change.</div>
+        <p class="explain-p">Tag filtering works by appending <code style="color:var(--green)">&tag=mystery</code> to the SWR key. Changing the key triggers a refetch automatically. Clicking ✕ on the active tag clears it and the key changes back.</p>
+        <div class="explain-good">✓ Skeleton cards (9 divs with shimmer CSS) show while loading so layout doesn't shift when the real cards arrive.</div>
+      </div>
+
+      <div class="explain-section" id="notes-hole-page">
+        <div class="explain-title">Rabbit Hole Page ⚡</div>
+        <p class="explain-p">This is the entire game experience in one component. It loads the hole data (all levels, unlock status), renders the nav sidebar and current level, and handles the solve event.</p>
+        <div class="explain-note">On a correct answer: <code style="color:var(--green)">reloadHole()</code> fires immediately to get the unlocked level content from the server, then after 1.4s the sidebar auto-advances to the next level. This gives the XPToast time to be visible before navigation.</div>
+        <p class="explain-p">Locked levels show only the puzzle question (no story content). The API enforces this — content is <code style="color:var(--green)">null</code> in the response for locked levels. The UI reflects exactly what the server sends.</p>
+        <div class="explain-good">✓ The level sidebar is purely decorative for locked levels (button is <code style="color:var(--green)">disabled</code>). You can see the depth of the hole but can't jump ahead.</div>
+      </div>
+
+      <div class="explain-section" id="notes-profile">
+        <div class="explain-title">Profile Page</div>
+        <p class="explain-p">Fully server-side rendered — no client data fetching. Profile data doesn't change often, so SSR is appropriate here. The XP progress bar percentage is calculated server-side too.</p>
+        <div class="explain-note">The "holes solved" count uses a raw SQL query (same pattern as the badges engine) to count distinct threads where the user unlocked the final level. Prisma's fluent API would need multiple queries to accomplish this.</div>
+        <p class="explain-p">Badge cards are colour-coded by rarity using <code style="color:var(--green)">RARITY_COLORS</code> — COMMON is grey, RARE is cyan, LEGENDARY is amber. Border colour only, so the card remains legible at all rarities.</p>
+      </div>
+
+      <div class="explain-section" id="notes-create">
+        <div class="explain-title">Create Wizard</div>
+        <p class="explain-p">Three-step wizard: setup → levels → review. Each step validates before allowing advancement. The canAdvance object makes disabled state declarative rather than scattered across multiple handlers.</p>
+        <div class="explain-note">Levels are added to the DB sequentially in a <code style="color:var(--green)">for...of</code> loop (not <code style="color:var(--green)">Promise.all</code>) because level order matters — the API assigns levelNumber as <code style="color:var(--green)">totalLevels + 1</code> per call.</div>
+        <p class="explain-p"><code style="color:var(--green)">useSession({ required: true })</code> automatically redirects unauthenticated users to the sign-in page. Combined with the Edge middleware, the create route is protected at two layers.</p>
+        <div class="explain-warn">⚠️ The plaintext <code style="color:var(--green)">answer</code> field travels from creator → POST body → lib/answer.hashAnswer() → DB as a hash. It's never logged. The network layer is the only exposure window (use HTTPS).</div>
+      </div>
+
+      <div class="explain-section" id="notes-navbar">
+        <div class="explain-title">NavBar</div>
+        <p class="explain-p">Reads session entirely client-side via <code style="color:var(--green)">useSession()</code>. The three states — loading skeleton, unauthenticated sign-in button, authenticated user info — cover every case cleanly.</p>
+        <div class="explain-note">No prop drilling required. Any component tree can render NavBar and it will read its own session. This works because next-auth wraps the app in a SessionProvider in <code style="color:var(--green)">_app.tsx</code>.</div>
+      </div>
+
+      <div class="explain-section" id="notes-thread-card">
+        <div class="explain-title">ThreadCard</div>
+        <p class="explain-p">The depth indicator (↓ N) uses colour to immediately convey difficulty: green for shallow (&lt;5 levels), amber for moderate, red for deep (10+). Solvers can self-select based on commitment.</p>
+        <div class="explain-note">Tag clicks call <code style="color:var(--green)">e.preventDefault()</code> before <code style="color:var(--green)">onTagClick(tag)</code>. Without the preventDefault, the Link's href would also fire, navigating away from the feed.</div>
+        <p class="explain-p">The rank color lookup uses the author's rank, not the viewer's. Seeing a "RABBIT MASTER" badge on an author signals that the content is probably high quality — social proof.</p>
+      </div>
+
+      <div class="explain-section" id="notes-puzzle-box">
+        <div class="explain-title">PuzzleBox</div>
+        <p class="explain-p">The shake animation fires on wrong answers — the input briefly oscillates left-right, giving haptic-style feedback that the answer was wrong without needing text. After shaking, the input clears and re-focuses.</p>
+        <div class="explain-note">The attempt bar fills left-to-right as wrong answers accumulate. When it hits 100%, the next attempt route returns 429. The bar makes the limit feel tangible rather than abstract.</div>
+        <p class="explain-p">The already-solved state renders a static "✓ solved" badge instead of the input. A user who revisits a solved level sees confirmation, not an empty puzzle box.</p>
+        <div class="explain-good">✓ The hint appears inline below the input — no modal, no separate request. It arrives in the 400 attempt response and appears immediately.</div>
+      </div>
+
+      <div class="explain-section" id="notes-level-content">
+        <div class="explain-title">LevelContent</div>
+        <p class="explain-p">Creators write level story content in Markdown. <code style="color:var(--green)">react-markdown</code> with <code style="color:var(--green)">remark-gfm</code> supports tables, strikethrough, task lists — useful for ARG-style content with structured data.</p>
+        <div class="explain-note">Code blocks inside level content get full syntax highlighting via Prism. Creators can embed formatted ciphertext, hex dumps, or code puzzles directly in the story markdown.</div>
+        <p class="explain-p">External links automatically open in a new tab. The check is simple: if href starts with "http", add target="_blank" and rel="noopener". Internal links (relative paths) navigate normally.</p>
+      </div>
+
+      <div class="explain-section" id="notes-xp-toast">
+        <div class="explain-title">XPToast</div>
+        <p class="explain-p">The one-frame delay before setting <code style="color:var(--green)">visible: true</code> is essential. If you set visible immediately on mount, the browser has no time to paint the initial state — the CSS transition never fires and the toast just appears instantly.</p>
+        <div class="explain-note">The toast stacks three layers: XP amount (always shown), rank-up banner (conditional), and badge chips (0 to many). Each is independently conditional so the layout compresses gracefully when absent.</div>
+        <p class="explain-p">Clicking anywhere on the toast dismisses it early. The 4-second auto-dismiss timer is cleaned up in the useEffect return — no memory leaks if the component unmounts before the timer fires.</p>
+      </div>
+
+      <div class="explain-section" id="notes-use-attempt">
+        <div class="explain-title">useAttempt Hook</div>
+        <p class="explain-p">Separating fetch logic from the component keeps PuzzleBox focused on rendering. The hook owns all loading state and error handling so the component just calls <code style="color:var(--green)">submit()</code> and reacts to the result.</p>
+        <div class="explain-note">HTTP 400 (wrong answer) is NOT thrown as an error. It's a normal API response. The hook returns it as data so PuzzleBox can show the wrong-answer UI. Only truly unexpected errors (401, 429, 5xx) throw.</div>
+        <div class="explain-good">✓ <code style="color:var(--green)">useCallback([puzzleId])</code> ensures the <code style="color:var(--green)">submit</code> function reference is stable between renders. Safe to put in useEffect dependency arrays in parent components.</div>
+      </div>
+
+      <div class="explain-section" id="notes-middleware">
+        <div class="explain-title">Edge Middleware</div>
+        <p class="explain-p">Runs at the CDN edge before the request hits your server — zero cold-start overhead. Unauthenticated users are redirected to <code style="color:var(--green)">/auth/signin</code> without ever touching the Next.js runtime.</p>
+        <div class="explain-note">The matcher pattern <code style="color:var(--green)">/create/:path*</code> protects the entire create directory including sub-routes. Adding a new protected page only requires adding a matcher entry here.</div>
+        <p class="explain-p">The <code style="color:var(--green)">authorized</code> callback checks for a token (session token). NextAuth sets this automatically for authenticated users. No custom logic needed for basic auth protection.</p>
+      </div>
+
+      <div class="explain-section" id="notes-next-config">
+        <div class="explain-title">Next.js Config</div>
+        <p class="explain-p">Image domains are allowlisted so <code style="color:var(--green)">next/image</code> can optimize and serve avatars from GitHub, Google, and Cloudinary. Requests from non-listed domains are blocked by Next.js.</p>
+        <div class="explain-note">The <code style="color:var(--green)">/thread/:slug → /hole/:slug</code> redirect is a permanent (308) redirect. If you ever rename the URL structure, old links bookmarked by users will continue to work.</div>
+        <p class="explain-p">Security headers on API routes add a second layer of XSS/clickjacking protection beyond what the framework provides. These headers cost nothing and block entire classes of attacks.</p>
+      </div>
+
+      <div class="explain-section" id="notes-tailwind">
+        <div class="explain-title">Tailwind Config</div>
+        <p class="explain-p">Design tokens (bg, surface, accent) are registered as Tailwind colors so you can write <code style="color:var(--green)">bg-bg</code>, <code style="color:var(--green)">text-accent</code> etc. in JSX — no inline style required for brand colors.</p>
+        <div class="explain-note">The <code style="color:var(--green)">typography</code> theme extension overrides the default prose colors to match the dark theme. Without this, <code style="color:var(--green)">@tailwindcss/typography</code> would render grey-on-white markdown on the dark background.</div>
+        <p class="explain-p">The <code style="color:var(--green)">shake</code> keyframe (used by PuzzleBox on wrong answers) and <code style="color:var(--green)">slideUp</code> (XPToast) are defined here so they're available as Tailwind utility classes: <code style="color:var(--green)">animate-shake</code>, <code style="color:var(--green)">animate-slideUp</code>.</p>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<div class="statusbar">
+  <div class="status-item">🟢 Phase 3 Complete</div>
+  <div class="status-item">14 files</div>
+  <div class="status-item">TypeScript · TSX</div>
+  <div class="status-item" style="margin-left:auto">Next.js · SWR · react-markdown · Tailwind</div>
+</div>
+
+<script>
+const fileMap = {
+  'nextauth':     { tab: 'auth/[...nextauth].ts',      notes: 'nextauth' },
+  'feed':         { tab: 'pages/index.tsx',             notes: 'feed' },
+  'hole-page':    { tab: 'pages/hole/[slug].tsx',       notes: 'hole-page' },
+  'profile':      { tab: 'pages/profile/[username].tsx',notes: 'profile' },
+  'create':       { tab: 'pages/create/index.tsx',      notes: 'create' },
+  'navbar':       { tab: 'components/NavBar.tsx',       notes: 'navbar' },
+  'thread-card':  { tab: 'components/ThreadCard.tsx',   notes: 'thread-card' },
+  'puzzle-box':   { tab: 'components/PuzzleBox.tsx',    notes: 'puzzle-box' },
+  'level-content':{ tab: 'components/LevelContent.tsx', notes: 'level-content' },
+  'xp-toast':     { tab: 'components/XPToast.tsx',      notes: 'xp-toast' },
+  'use-attempt':  { tab: 'hooks/useAttempt.ts',         notes: 'use-attempt' },
+  'middleware':   { tab: 'middleware.ts',                notes: 'middleware' },
+  'next-config':  { tab: 'next.config.js',              notes: 'next-config' },
+  'tailwind':     { tab: 'tailwind.config.ts',          notes: 'tailwind' },
+}
+
+let currentFile = 'nextauth'
+const openTabs = new Set(['nextauth'])
+
+function openFile(name) {
+  document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.tree-file').forEach(f => f.classList.remove('active'))
+  document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'))
+  document.querySelectorAll('.explain-section').forEach(s => s.classList.remove('active'))
+
+  if (!openTabs.has(name)) {
+    openTabs.add(name)
+    const tab = document.createElement('div')
+    tab.className = 'code-tab'
+    tab.id = `tab-${name}`
+    tab.innerHTML = `<span style="color:var(--green)">◆</span> ${fileMap[name].tab}`
+    tab.onclick = () => openFile(name)
+    document.getElementById('tabs-bar').appendChild(tab)
+  }
+
+  currentFile = name
+  document.getElementById(`pane-${name}`)?.classList.add('active')
+  document.getElementById(`file-${name}`)?.classList.add('active')
+  document.getElementById(`tab-${name}`)?.classList.add('active')
+  document.getElementById(`notes-${fileMap[name].notes}`)?.classList.add('active')
+  document.getElementById('current-file').textContent = fileMap[name].tab
+
+  generateLineNumbers(name)
+}
+
+function generateLineNumbers(name) {
+  const pane    = document.getElementById(`pane-${name}`)
+  const content = pane?.querySelector('.code-content')
+  const ln      = document.getElementById(`ln-${name}`)
+  if (!content || !ln || ln.children.length > 0) return
+
+  const lines = content.innerHTML.split('\n').length
+  ln.innerHTML = Array.from({ length: lines }, (_, i) =>
+    `<span>${i + 1}</span>`
+  ).join('')
+}
+
+openFile('nextauth')
+</script>
+</body>
+</html>

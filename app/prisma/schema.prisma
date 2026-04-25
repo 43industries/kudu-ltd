@@ -1,0 +1,290 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// USERS & AUTH
+// ─────────────────────────────────────────────
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  username    String   @unique
+  displayName String?
+  avatarUrl   String?
+  bio         String?
+  xp          Int      @default(0)
+  rank        UserRank @default(LURKER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  threads  RabbitHoleThread[]
+  unlocks  LevelUnlock[]
+  comments Comment[]
+  votes    Vote[]
+  badges   UserBadge[]
+  following Follow[] @relation("follower")
+  followers Follow[] @relation("following")
+  theories Theory[]
+}
+
+enum UserRank {
+  LURKER
+  CURIOUS
+  DIGGER
+  TRUTH_SEEKER
+  DEEP_DIVER
+  RABBIT_MASTER
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────────────────────────────
+// RABBIT HOLES
+// ─────────────────────────────────────────────
+
+model RabbitHoleThread {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  teaser        String
+  coverImageUrl String?
+  isSecret      Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  totalLevels   Int      @default(1)
+  solveCount    Int      @default(0)
+  viewCount     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  levels  Level[]
+  tags    ThreadTag[]
+  votes   Vote[]
+  unlocks LevelUnlock[]
+}
+
+// ─────────────────────────────────────────────
+// LEVELS
+// ─────────────────────────────────────────────
+
+model Level {
+  id          String   @id @default(cuid())
+  levelNumber Int
+  title       String?
+  content     String
+  mediaUrls   String[]
+  revealHint  String?
+  xpReward    Int      @default(50)
+  createdAt   DateTime @default(now())
+
+  threadId String
+  thread   RabbitHoleThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  puzzle   Puzzle?
+  unlocks  LevelUnlock[]
+  comments Comment[]
+
+  @@unique([threadId, levelNumber])
+}
+
+// ─────────────────────────────────────────────
+// PUZZLES
+// ─────────────────────────────────────────────
+
+model Puzzle {
+  id              String     @id @default(cuid())
+  type            PuzzleType
+  question        String
+  answerHash      String
+  answerHints     String[]
+  caseSensitive   Boolean    @default(false)
+  maxAttempts     Int?
+  timeLimit       Int?
+  externalClueUrl String?
+  createdAt       DateTime   @default(now())
+
+  levelId  String          @unique
+  level    Level           @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  attempts PuzzleAttempt[]
+}
+
+enum PuzzleType {
+  TEXT_RIDDLE
+  PASSWORD
+  IMAGE_CLUE
+  NUMERIC
+  MULTIPLE_CHOICE
+  CIPHER
+  EXTERNAL
+}
+
+// ─────────────────────────────────────────────
+// PUZZLE ATTEMPTS & UNLOCKS
+// ─────────────────────────────────────────────
+
+model PuzzleAttempt {
+  id          String   @id @default(cuid())
+  answer      String
+  isCorrect   Boolean
+  attemptedAt DateTime @default(now())
+
+  puzzleId String
+  puzzle   Puzzle @relation(fields: [puzzleId], references: [id])
+  userId   String
+
+  @@index([puzzleId, userId])
+}
+
+model LevelUnlock {
+  id         String   @id @default(cuid())
+  unlockedAt DateTime @default(now())
+  xpEarned   Int
+
+  userId   String
+  user     User             @relation(fields: [userId], references: [id])
+  levelId  String
+  level    Level            @relation(fields: [levelId], references: [id])
+  threadId String
+  thread   RabbitHoleThread @relation(fields: [threadId], references: [id])
+
+  @@unique([userId, levelId])
+}
+
+// ─────────────────────────────────────────────
+// SOCIAL
+// ─────────────────────────────────────────────
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  isTheory  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+  levelId  String
+  level    Level  @relation(fields: [levelId], references: [id])
+  parentId String?
+  parent   Comment?  @relation("replies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("replies")
+  votes    Vote[]
+}
+
+model Theory {
+  id        String   @id @default(cuid())
+  content   String
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now())
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  value     Int
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  threadId  String?
+  thread    RabbitHoleThread? @relation(fields: [threadId], references: [id])
+  commentId String?
+  comment   Comment?          @relation(fields: [commentId], references: [id])
+
+  @@unique([userId, threadId])
+  @@unique([userId, commentId])
+}
+
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("follower", fields: [followerId], references: [id])
+  following   User     @relation("following", fields: [followingId], references: [id])
+
+  @@id([followerId, followingId])
+}
+
+// ─────────────────────────────────────────────
+// GAMIFICATION
+// ─────────────────────────────────────────────
+
+model Badge {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  name        String
+  description String
+  iconUrl     String?
+  rarity      BadgeRarity @default(COMMON)
+
+  users UserBadge[]
+}
+
+enum BadgeRarity {
+  COMMON
+  RARE
+  LEGENDARY
+}
+
+model UserBadge {
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+  badge    Badge    @relation(fields: [badgeId], references: [id])
+
+  @@id([userId, badgeId])
+}
+
+model ThreadTag {
+  threadId String
+  tag      String
+  thread   RabbitHoleThread @relation(fields: [threadId], references: [id])
+
+  @@id([threadId, tag])
+}

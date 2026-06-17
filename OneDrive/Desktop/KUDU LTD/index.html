@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KUDU Talent LTD — Kenya–Germany Talent Bridge</title>
+<meta name="description" content="KUDU Talent connects exceptional Kenyan professionals with leading German employers — curated placements across Kenya and Germany.">
+<meta name="theme-color" content="#0D1F2D">
+<meta property="og:title" content="KUDU Talent LTD — Kenya–Germany Talent Bridge">
+<meta property="og:description" content="Where Kenyan talent meets German opportunity. Verified placements curated by KUDU Talent LTD.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/kudu-talent-logo.png">
+<link rel="icon" type="image/png" href="/kudu-talent-logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0D1F2D;
+    --navy-mid: #162636;
+    --navy-light: #1E3448;
+    --gold: #C9A84C;
+    --gold-light: #E2C97A;
+    --gold-pale: #F5EDD4;
+    --cream: #F8F5EF;
+    --green: #2D6A4F;
+    --green-light: #40916C;
+    --slate: #4A5568;
+    --slate-light: #718096;
+    --white: #FFFFFF;
+    --red: #C0392B;
+    --red-light: #E74C3C;
+    --border: rgba(201,168,76,0.2);
+    --border-light: rgba(201,168,76,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--navy); color: var(--cream); min-height: 100vh; }
+  
+  /* ─── LANDING ─── */
+  #landing { display: flex; flex-direction: column; min-height: 100vh; }
+  .land-nav { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 4rem; border-bottom: 1px solid var(--border-light); }
+  .logo { display: flex; align-items: center; }
+  .logo-img { display: block; height: auto; object-fit: contain; border-radius: 4px; }
+  .logo-img--nav { height: 56px; }
+  .logo-img--footer { height: 48px; }
+  .logo-img--sidebar { height: 52px; margin-bottom: 0.5rem; }
+  .logo-img--modal { height: 72px; margin: 0 auto 1.25rem; }
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-links a { color: var(--slate-light); text-decoration: none; font-size: 0.875rem; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--gold); }
+  .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.5rem; border-radius: 4px; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; font-family: 'Inter', sans-serif; text-decoration: none; }
+  .btn-gold { background: var(--gold); color: var(--navy); }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-outline { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+  .btn-outline:hover { background: rgba(201,168,76,0.1); }
+  .btn-ghost { background: transparent; color: var(--cream); border: 1px solid rgba(248,245,239,0.2); }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-green { background: var(--green); color: var(--white); }
+  .btn-green:hover { background: var(--green-light); }
+  .btn-red { background: var(--red); color: var(--white); }
+  .btn-red:hover { background: var(--red-light); }
+  .btn-sm { padding: 0.4rem 1rem; font-size: 0.8rem; }
+  .btn-lg { padding: 0.875rem 2rem; font-size: 1rem; }
+
+  .hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 5rem 2rem 3rem; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero-eyebrow { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem; font-weight: 500; }
+  .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 700; line-height: 1.1; max-width: 800px; margin-bottom: 1.5rem; }
+  .hero h1 span { color: var(--gold); }
+  .hero p { font-size: 1.1rem; color: var(--slate-light); max-width: 560px; line-height: 1.7; margin-bottom: 2.5rem; }
+  .hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  .horizon { width: 100%; max-width: 600px; margin: 4rem auto 0; opacity: 0.4; }
+  .horizon svg { width: 100%; }
+
+  .roles-section { padding: 5rem 4rem; }
+  .section-label { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.75rem; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 3rem; }
+  .roles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+  .role-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; transition: border-color 0.2s, transform 0.2s; cursor: pointer; }
+  .role-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .role-icon { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.25rem; font-size: 1.5rem; }
+  .role-icon.admin { background: rgba(201,168,76,0.15); }
+  .role-icon.employer { background: rgba(45,106,79,0.15); }
+  .role-icon.seeker { background: rgba(74,85,104,0.15); }
+  .role-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .role-card p { font-size: 0.875rem; color: var(--slate-light); line-height: 1.6; margin-bottom: 1.25rem; }
+
+  .flow-section { padding: 5rem 4rem; background: var(--navy-mid); border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); }
+  .flow-steps { display: flex; gap: 0; align-items: flex-start; max-width: 900px; margin: 0 auto; }
+  .flow-step { flex: 1; text-align: center; padding: 1.5rem 1rem; position: relative; }
+  .flow-step:not(:last-child)::after { content: '→'; position: absolute; right: -8px; top: 2rem; color: var(--gold); font-size: 1.2rem; }
+  .step-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.7rem; color: var(--gold); letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+  .step-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+  .flow-step h4 { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .flow-step p { font-size: 0.8rem; color: var(--slate-light); line-height: 1.5; }
+
+  footer { padding: 2rem 4rem; border-top: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; }
+  footer p { font-size: 0.8rem; color: var(--slate-light); }
+  .footer-flags { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--slate-light); }
+
+  /* ─── AUTH MODAL ─── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(13,31,45,0.9); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
+  .modal { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 12px; padding: 2.5rem; width: 100%; max-width: 440px; position: relative; }
+  .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--slate-light); font-size: 1.25rem; cursor: pointer; line-height: 1; }
+  .modal-close:hover { color: var(--cream); }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .modal p { font-size: 0.875rem; color: var(--slate-light); margin-bottom: 1.75rem; }
+  .form-group { margin-bottom: 1.25rem; }
+  .form-group label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--slate-light); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+  .form-group input, .form-group select, .form-group textarea { width: 100%; background: var(--navy); border: 1px solid var(--border); border-radius: 4px; padding: 0.75rem 1rem; color: var(--cream); font-size: 0.875rem; font-family: 'Inter', sans-serif; outline: none; transition: border-color 0.2s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--gold); }
+  .form-group select option { background: var(--navy); }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .form-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.75rem; }
+  .form-tab { flex: 1; padding: 0.75rem; text-align: center; font-size: 0.875rem; cursor: pointer; color: var(--slate-light); border-bottom: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Inter', sans-serif; }
+  .form-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .auth-switch { text-align: center; margin-top: 1.25rem; font-size: 0.8rem; color: var(--slate-light); }
+  .auth-switch a { color: var(--gold); cursor: pointer; }
+  .msg-error { background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.3); color: #e88; border-radius: 4px; padding: 0.75rem 1rem; font-size: 0.8rem; margin-bottom: 1rem; }
+  .msg-success { background: rgba(45,106,79,0.15); border: 1px solid rgba(45,106,79,0.3); color: #6dbe91; border-radius: 4px; padding: 0.75rem 1rem; font-size: 0.8rem; margin-bottom: 1rem; }
+
+  /* ─── DASHBOARD SHELL ─── */
+  #dashboard { display: none; min-height: 100vh; }
+  .dash-layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 260px; background: var(--navy-mid); border-right: 1px solid var(--border-light); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 1.75rem 1.5rem; border-bottom: 1px solid var(--border-light); }
+  .sidebar-role-badge { display: inline-block; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(201,168,76,0.15); color: var(--gold); padding: 0.2rem 0.6rem; border-radius: 2px; margin-top: 0.5rem; }
+  .sidebar-user { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-light); }
+  .sidebar-user-name { font-size: 0.875rem; font-weight: 500; }
+  .sidebar-user-email { font-size: 0.75rem; color: var(--slate-light); margin-top: 2px; }
+  .sidebar-nav { flex: 1; padding: 1rem 0; }
+  .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; font-size: 0.875rem; color: var(--slate-light); cursor: pointer; transition: all 0.15s; border-left: 3px solid transparent; }
+  .nav-item:hover { color: var(--cream); background: rgba(201,168,76,0.05); }
+  .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+  .sidebar-bottom { padding: 1rem 1.5rem; border-top: 1px solid var(--border-light); }
+  .dash-content { flex: 1; overflow-y: auto; background: var(--navy); }
+  .dash-header { padding: 2rem 2.5rem 1rem; border-bottom: 1px solid var(--border-light); }
+  .dash-header h1 { font-family: 'Playfair Display', serif; font-size: 1.75rem; }
+  .dash-header p { font-size: 0.875rem; color: var(--slate-light); margin-top: 0.25rem; }
+  .dash-body { padding: 2rem 2.5rem; }
+
+  /* ─── CARDS & COMPONENTS ─── */
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem 1.5rem; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); }
+  .stat-label { font-size: 0.75rem; color: var(--slate-light); margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; }
+  .card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-light); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 1rem; font-weight: 600; }
+  .card-body { padding: 1.5rem; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .section-head h2 { font-size: 1.1rem; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  th { padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-light); border-bottom: 1px solid var(--border); font-weight: 500; }
+  td { padding: 0.875rem 1rem; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(201,168,76,0.03); }
+  .badge { display: inline-flex; align-items: center; padding: 0.2rem 0.6rem; border-radius: 2px; font-size: 0.7rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; }
+  .badge-gold { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .badge-green { background: rgba(45,106,79,0.2); color: #6dbe91; }
+  .badge-blue { background: rgba(52,152,219,0.15); color: #7ec8f0; }
+  .badge-red { background: rgba(192,57,43,0.15); color: #e88; }
+  .badge-grey { background: rgba(74,85,104,0.3); color: var(--slate-light); }
+  .empty-state { text-align: center; padding: 3rem; color: var(--slate-light); }
+  .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5; }
+  .empty-state p { font-size: 0.875rem; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .inline-form { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; }
+  .tag { display: inline-block; background: rgba(201,168,76,0.1); border: 1px solid var(--border); color: var(--gold-light); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 2px; margin: 0.15rem; }
+  .divider { border: none; border-top: 1px solid var(--border-light); margin: 1.5rem 0; }
+  .file-upload-area { border: 1px dashed var(--border); border-radius: 6px; padding: 2rem; text-align: center; cursor: pointer; transition: border-color 0.2s; }
+  .file-upload-area:hover { border-color: var(--gold); }
+  .file-upload-area p { font-size: 0.875rem; color: var(--slate-light); margin-top: 0.5rem; }
+  .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--navy-light); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.75rem; margin-bottom: 1rem; }
+  .notification { padding: 1rem 1.25rem; border-left: 3px solid var(--gold); background: rgba(201,168,76,0.05); border-radius: 0 6px 6px 0; margin-bottom: 0.75rem; font-size: 0.875rem; }
+  .notification .notif-time { font-size: 0.75rem; color: var(--slate-light); margin-top: 0.25rem; }
+  .cv-preview { background: var(--navy); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin-bottom: 1rem; }
+  .cv-preview h4 { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .cv-preview p { font-size: 0.8rem; color: var(--slate-light); }
+  .actions-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .job-card { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; transition: border-color 0.2s; }
+  .job-card:hover { border-color: var(--gold); }
+  .job-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+  .job-card h3 { font-size: 1rem; font-weight: 600; }
+  .job-card .company { font-size: 0.8rem; color: var(--gold); margin-top: 0.2rem; }
+  .job-meta { display: flex; gap: 1rem; flex-wrap: wrap; margin: 0.75rem 0; }
+  .job-meta span { font-size: 0.8rem; color: var(--slate-light); display: flex; align-items: center; gap: 0.3rem; }
+  .progress-bar { background: var(--navy-light); border-radius: 2px; height: 4px; overflow: hidden; margin-top: 0.5rem; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--gold)); border-radius: 2px; transition: width 0.3s; }
+  .tab-bar { display: flex; border-bottom: 1px solid var(--border-light); margin-bottom: 1.5rem; gap: 0; }
+  .tab-btn { padding: 0.75rem 1.25rem; font-size: 0.875rem; cursor: pointer; color: var(--slate-light); border-bottom: 2px solid transparent; transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Inter', sans-serif; }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .search-bar { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .search-bar input { flex: 1; background: var(--navy-mid); border: 1px solid var(--border); border-radius: 4px; padding: 0.625rem 1rem; color: var(--cream); font-size: 0.875rem; font-family: 'Inter', sans-serif; outline: none; }
+  .search-bar input:focus { border-color: var(--gold); }
+  .detail-panel { background: var(--navy-mid); border: 1px solid var(--border); border-radius: 8px; padding: 2rem; }
+  .detail-panel h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+  .info-item label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-light); display: block; margin-bottom: 0.25rem; }
+  .info-item span { font-size: 0.875rem; }
+  .forward-card { background: var(--navy); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
+  .forward-card .fc-info { flex: 1; }
+  .forward-card .fc-name { font-size: 0.875rem; font-weight: 500; }
+  .forward-card .fc-detail { font-size: 0.78rem; color: var(--slate-light); }
+  @media (max-width: 768px) {
+    .land-nav { padding: 1rem 1.5rem; }
+    .logo-img--nav { height: 44px; }
+    .logo-img--footer { height: 40px; margin: 0 auto; }
+    .logo-img--sidebar { height: 44px; }
+    .roles-section, .flow-section { padding: 3rem 1.5rem; }
+    footer { padding: 1.5rem; flex-direction: column; gap: 0.75rem; text-align: center; }
+    .sidebar { width: 220px; }
+    .dash-body { padding: 1.25rem; }
+    .two-col, .form-row, .info-grid { grid-template-columns: 1fr; }
+    .flow-steps { flex-direction: column; }
+    .flow-step:not(:last-child)::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ LANDING PAGE ═══════════════════════ -->
+<div id="landing">
+  <nav class="land-nav">
+    <div class="logo">
+      <img src="/kudu-talent-logo.png" alt="Kudu Talent Logo - Talent. Trust. Impact." class="logo-img logo-img--nav">
+    </div>
+    <div class="nav-links">
+      <a href="#how">How It Works</a>
+      <a href="#roles">For Employers</a>
+      <a href="#roles">For Workers</a>
+      <button class="btn btn-outline btn-sm" onclick="openAuth('login')">Sign In</button>
+      <button class="btn btn-gold btn-sm" onclick="openAuth('register')">Get Started</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-eyebrow">🇰🇪 Nairobi &nbsp;•&nbsp; 🇩🇪 Germany &nbsp;•&nbsp; Verified Talent Bridge</div>
+    <h1>Where <span>Kenyan Talent</span><br>Meets German Opportunity</h1>
+    <p>KUDU Talent connects exceptional Kenyan professionals with leading German employers — with every placement curated by our expert team.</p>
+    <div class="hero-ctas">
+      <button class="btn btn-gold btn-lg" onclick="openAuth('register', 'employer')">📋 Post a Job — Free</button>
+      <button class="btn btn-ghost btn-lg" onclick="openAuth('register', 'seeker')">🎯 Find Opportunities</button>
+    </div>
+    <div class="horizon">
+      <svg viewBox="0 0 600 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0 45 Q50 30 80 42 Q100 50 120 38 Q150 20 180 35 Q200 45 220 30 Q250 10 280 28 Q300 40 320 25 Q350 5 380 22 Q400 35 420 20 Q450 5 480 18 Q510 30 540 15 Q570 5 600 20" stroke="#C9A84C" stroke-width="1.5" fill="none" opacity="0.6"/>
+        <path d="M0 55 L600 55" stroke="#2D6A4F" stroke-width="1" opacity="0.4"/>
+        <!-- savanna silhouettes -->
+        <ellipse cx="120" cy="50" rx="18" ry="6" fill="#C9A84C" opacity="0.15"/>
+        <rect x="116" y="36" width="2" height="14" fill="#C9A84C" opacity="0.2"/>
+        <ellipse cx="116" cy="36" rx="12" ry="5" fill="#C9A84C" opacity="0.15"/>
+        <ellipse cx="360" cy="50" rx="22" ry="6" fill="#C9A84C" opacity="0.12"/>
+        <rect x="357" y="34" width="2" height="16" fill="#C9A84C" opacity="0.2"/>
+        <ellipse cx="357" cy="34" rx="15" ry="5" fill="#C9A84C" opacity="0.12"/>
+        <ellipse cx="520" cy="52" rx="15" ry="5" fill="#C9A84C" opacity="0.1"/>
+        <rect x="517" y="40" width="2" height="12" fill="#C9A84C" opacity="0.15"/>
+        <ellipse cx="517" cy="40" rx="10" ry="4" fill="#C9A84C" opacity="0.1"/>
+      </svg>
+    </div>
+  </section>
+
+  <section id="how" class="flow-section">
+    <div style="text-align:center; margin-bottom:2.5rem;">
+      <div class="section-label">The Process</div>
+      <div class="section-title" style="margin:0">How KUDU Works</div>
+    </div>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="step-num">01</div>
+        <div class="step-icon">🏢</div>
+        <h4>Employer Posts Job</h4>
+        <p>German employer creates a company profile and posts available positions with full requirements.</p>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">02</div>
+        <div class="step-icon">📄</div>
+        <h4>Job Seeker Applies</h4>
+        <p>Kenyan professionals build their profile, upload their CV and express interest in roles.</p>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">03</div>
+        <div class="step-icon">🔍</div>
+        <h4>Admin Reviews</h4>
+        <p>KUDU admins vet every CV, match skills to requirements and shortlist the best candidates.</p>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">04</div>
+        <div class="step-icon">✉️</div>
+        <h4>Admin Forwards</h4>
+        <p>Only shortlisted, verified CVs are forwarded to employers — zero noise, pure quality.</p>
+      </div>
+      <div class="flow-step">
+        <div class="step-num">05</div>
+        <div class="step-icon">🤝</div>
+        <h4>Placement Made</h4>
+        <p>Employer selects their hire. KUDU manages onboarding communications end-to-end.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="roles" class="roles-section">
+    <div class="section-label">Access Portals</div>
+    <div class="section-title">Choose Your Dashboard</div>
+    <div class="roles-grid">
+      <div class="role-card" onclick="openAuth('register', 'admin')">
+        <div class="role-icon admin">🛡️</div>
+        <h3>Admin Portal</h3>
+        <p>Full platform oversight — review CVs, forward candidates to employers, manage users, and track all placements.</p>
+        <button class="btn btn-outline btn-sm">Admin Setup →</button>
+      </div>
+      <div class="role-card" onclick="openAuth('register', 'employer')">
+        <div class="role-icon employer">🏢</div>
+        <h3>Employer Portal</h3>
+        <p>Create your company profile, post open positions, and receive pre-vetted candidate CVs forwarded by our admin team.</p>
+        <button class="btn btn-green btn-sm">Register as Employer →</button>
+      </div>
+      <div class="role-card" onclick="openAuth('register', 'seeker')">
+        <div class="role-icon seeker">👤</div>
+        <h3>Job Seeker Portal</h3>
+        <p>Build your professional profile, upload your CV, and get matched with top German employers by our placement experts.</p>
+        <button class="btn btn-gold btn-sm">Register as Job Seeker →</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>
+      <img src="/kudu-talent-logo.png" alt="Kudu Talent Logo - Talent. Trust. Impact." class="logo-img logo-img--footer">
+      <p style="font-size:0.75rem;color:var(--slate-light);margin-top:0.75rem;">© 2026 KUDU Talent LTD. All rights reserved. · <a href="#" onclick="openLegal('privacy');return false;" style="color:var(--gold);text-decoration:none;">Privacy</a> · <a href="#" onclick="openLegal('terms');return false;" style="color:var(--gold);text-decoration:none;">Terms</a></p>
+    </div>
+    <div class="footer-flags">
+      <span>🇰🇪 Nairobi, Kenya</span>
+      <span style="color:var(--border)">•</span>
+      <span>🇩🇪 Germany</span>
+      <span style="color:var(--border)">•</span>
+      <span>info@kudutalent.com</span>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════ LEGAL MODAL ═══════════════════════ -->
+<div class="modal-overlay" id="legalModal" style="display:none;">
+  <div class="modal" style="max-width:560px;max-height:80vh;overflow-y:auto;">
+    <button class="modal-close" onclick="closeLegal()">✕</button>
+    <div id="legalContent"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ AUTH MODAL ═══════════════════════ -->
+<div class="modal-overlay" id="authModal" style="display:none;">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuth()">✕</button>
+    <div id="authContent"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ DASHBOARD ═══════════════════════ -->
+<div id="dashboard">
+  <div class="dash-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <img src="/kudu-talent-logo.png" alt="Kudu Talent Logo - Talent. Trust. Impact." class="logo-img logo-img--sidebar">
+        <div class="sidebar-role-badge" id="sidebarRoleBadge">—</div>
+      </div>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name" id="sidebarName">—</div>
+        <div class="sidebar-user-email" id="sidebarEmail">—</div>
+      </div>
+      <nav class="sidebar-nav" id="sidebarNav"></nav>
+      <div class="sidebar-bottom">
+        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="logout()">← Sign Out</button>
+      </div>
+    </aside>
+    <main class="dash-content" id="dashContent"></main>
+  </div>
+</div>
+
+<script type="module">
+// ═══════════════════════ DATA STORE ═══════════════════════
+const DB = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem('kudu_'+k)) || null; } catch { return null; } },
+  set: (k,v) => localStorage.setItem('kudu_'+k, JSON.stringify(v)),
+  users: () => DB.get('users') || [],
+  jobs: () => DB.get('jobs') || [],
+  applications: () => DB.get('applications') || [],
+  forwardings: () => DB.get('forwardings') || [],
+  notifications: () => DB.get('notifications') || [],
+  saveUsers: (u) => DB.set('users', u),
+  saveJobs: (j) => DB.set('jobs', j),
+  saveApps: (a) => DB.set('applications', a),
+  saveFwds: (f) => DB.set('forwardings', f),
+  saveNotifs: (n) => DB.set('notifications', n),
+};
+
+const ADMIN_INVITE_CODE = import.meta.env.VITE_ADMIN_INVITE_CODE || '';
+
+let currentUser = null;
+let regPreRole = '';
+
+function uid() { return Math.random().toString(36).substr(2,9); }
+function now() { return new Date().toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}); }
+function addNotif(userId, msg) {
+  let n = DB.notifications();
+  n.unshift({ id: uid(), userId, msg, time: now(), read: false });
+  DB.saveNotifs(n);
+}
+
+// ═══════════════════════ AUTH ═══════════════════════
+const LOGO_HTML = '<img src="/kudu-talent-logo.png" alt="Kudu Talent Logo - Talent. Trust. Impact." class="logo-img logo-img--modal">';
+
+function openAuth(mode='login', role='') {
+  document.getElementById('authContent').innerHTML = mode==='login' ? loginForm(role) : registerForm(role);
+  document.getElementById('authModal').style.display = 'flex';
+}
+function closeAuth() { document.getElementById('authModal').style.display = 'none'; }
+
+function loginForm() {
+  return `
+    ${LOGO_HTML}
+    <h2>Welcome Back</h2>
+    <p>Sign in to your KUDU Talent LTD account</p>
+    <div id="authMsg"></div>
+    <div class="form-group"><label>Email Address</label><input id="li_email" type="email" placeholder="your@email.com"></div>
+    <div class="form-group"><label>Password</label><input id="li_pass" type="password" placeholder="••••••••"></div>
+    <button class="btn btn-gold" style="width:100%" onclick="doLogin()">Sign In →</button>
+    <div class="auth-switch">Don't have an account? <a onclick="openAuth('register')">Register here</a></div>
+  `;
+}
+function registerForm(preRole='') {
+  if (preRole === 'admin') {
+    return `
+      ${LOGO_HTML}
+      <h2>Admin Setup</h2>
+      <p>Create the KUDU platform admin account with your invite code</p>
+      <div id="authMsg"></div>
+      <input type="hidden" id="regRole" value="admin">
+      <div class="form-group"><label>Full Name</label><input id="reg_name" placeholder="Your name"></div>
+      <div class="form-group"><label>Email</label><input id="reg_email" type="email" placeholder="your@email.com"></div>
+      <div class="form-group"><label>Password</label><input id="reg_pass" type="password" placeholder="Min 6 characters"></div>
+      <div class="form-group"><label>Admin Invite Code</label><input id="reg_invite" type="password" placeholder="Enter your invite code" autocomplete="off"></div>
+      <button class="btn btn-gold" style="width:100%" onclick="doRegister()">Create Admin Account →</button>
+      <div class="auth-switch">Already have an account? <a onclick="openAuth('login')">Sign in</a></div>
+    `;
+  }
+  return `
+    ${LOGO_HTML}
+    <h2>Create Account</h2>
+    <p>Join KUDU Talent LTD — Kenya meets Germany</p>
+    <div id="authMsg"></div>
+    <div class="form-tabs">
+      <button class="form-tab ${preRole!=='employer'?'active':''}" onclick="switchRegTab('seeker',this)">Job Seeker 🇰🇪</button>
+      <button class="form-tab ${preRole==='employer'?'active':''}" onclick="switchRegTab('employer',this)">Employer 🇩🇪</button>
+    </div>
+    <div id="regFields"></div>
+    <button class="btn btn-gold" style="width:100%" onclick="doRegister()">Create Account →</button>
+    <div class="auth-switch">Already have an account? <a onclick="openAuth('login')">Sign in</a></div>
+  `;
+  setTimeout(()=>switchRegTab(preRole==='employer'?'employer':'seeker',null),0);
+}
+function switchRegTab(role, el) {
+  if(el){document.querySelectorAll('.form-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+  document.getElementById('regRole') && (document.getElementById('regRole').value = role);
+  document.getElementById('regFields').innerHTML = role==='seeker' ? `
+    <input type="hidden" id="regRole" value="seeker">
+    <div class="form-row">
+      <div class="form-group"><label>Full Name</label><input id="reg_name" placeholder="Jane Wanjiku"></div>
+      <div class="form-group"><label>Phone</label><input id="reg_phone" placeholder="+254 7XX XXX XXX"></div>
+    </div>
+    <div class="form-group"><label>Email</label><input id="reg_email" type="email" placeholder="jane@email.com"></div>
+    <div class="form-group"><label>Password</label><input id="reg_pass" type="password" placeholder="Min 6 characters"></div>
+    <div class="form-group"><label>Current Location</label><input id="reg_location" placeholder="Nairobi, Kenya"></div>
+  ` : `
+    <input type="hidden" id="regRole" value="employer">
+    <div class="form-group"><label>Company Name</label><input id="reg_company" placeholder="GmbH / AG name"></div>
+    <div class="form-group"><label>Contact Person</label><input id="reg_name" placeholder="Hans Müller"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Email</label><input id="reg_email" type="email" placeholder="hr@company.de"></div>
+      <div class="form-group"><label>Password</label><input id="reg_pass" type="password" placeholder="Min 6 characters"></div>
+    </div>
+    <div class="form-group"><label>City in Germany</label><input id="reg_location" placeholder="Berlin, Hamburg..."></div>
+  `;
+}
+
+// Trigger on modal open
+window.addEventListener('click', ()=>{
+  const rf = document.getElementById('regFields');
+  const rr = document.getElementById('regRole');
+  if(rf && rf.innerHTML==='' && rr) switchRegTab(rr.value||'seeker',null);
+});
+
+document.getElementById('authModal').addEventListener('click', function(e){
+  const rf = document.getElementById('regFields');
+  if(rf && rf.innerHTML==='') switchRegTab('seeker',null);
+});
+
+function authMsg(msg, type='error') {
+  const el = document.getElementById('authMsg');
+  if(el) el.innerHTML = `<div class="msg-${type}">${msg}</div>`;
+}
+
+function doLogin() {
+  const email = document.getElementById('li_email').value.trim();
+  const pass = document.getElementById('li_pass').value;
+  if(!email||!pass) return authMsg('Please fill in all fields');
+  const user = DB.users().find(u=>u.email===email && u.password===pass);
+  if(!user) return authMsg('Invalid email or password');
+  currentUser = user;
+  sessionStorage.setItem('kudu_session', user.id);
+  closeAuth();
+  loadDashboard();
+}
+
+function doRegister() {
+  const role = document.getElementById('regRole')?.value || 'seeker';
+  const name = document.getElementById('reg_name')?.value.trim();
+  const email = document.getElementById('reg_email')?.value.trim();
+  const pass = document.getElementById('reg_pass')?.value;
+  const location = document.getElementById('reg_location')?.value?.trim() || '';
+  const inviteCode = document.getElementById('reg_invite')?.value?.trim() || '';
+  if(!name||!email||!pass) return authMsg('Please fill in all fields');
+  if(role !== 'admin' && !location) return authMsg('Please fill in all fields');
+  if(pass.length<6) return authMsg('Password must be at least 6 characters');
+  if(role === 'admin') {
+    if(!ADMIN_INVITE_CODE || inviteCode !== ADMIN_INVITE_CODE) return authMsg('Invalid admin invite code');
+    if(DB.users().some(u => u.role === 'admin')) return authMsg('An admin account already exists');
+  }
+  const users = DB.users();
+  if(users.find(u=>u.email===email)) return authMsg('Email already registered');
+  const newUser = {
+    id: uid(), email, password: pass, role, name,
+    phone: document.getElementById('reg_phone')?.value||'',
+    location: role === 'admin' ? 'Nairobi, Kenya' : location,
+    company: document.getElementById('reg_company')?.value||'',
+    createdAt: new Date().toISOString(),
+    profileComplete: false,
+    cvUploaded: false, cvName: '', cvSkills: '', cvBio: '', cvExperience: '',
+    companyDesc: '', companyIndustry: '', companySize: '',
+    status: 'active'
+  };
+  users.push(newUser);
+  DB.saveUsers(users);
+  currentUser = newUser;
+  sessionStorage.setItem('kudu_session', newUser.id);
+  closeAuth();
+  loadDashboard();
+}
+
+function logout() {
+  currentUser=null;
+  sessionStorage.removeItem('kudu_session');
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('landing').style.display='flex';
+}
+
+// ═══════════════════════ DASHBOARD LOADER ═══════════════════════
+const dashMenus = {
+  admin: [
+    { id:'overview', icon:'📊', label:'Overview' },
+    { id:'cvReview', icon:'📄', label:'Review CVs' },
+    { id:'forward', icon:'✉️', label:'Forward to Employers' },
+    { id:'jobs', icon:'💼', label:'All Jobs' },
+    { id:'seekers', icon:'👥', label:'Job Seekers' },
+    { id:'employers', icon:'🏢', label:'Employers' },
+    { id:'notifications', icon:'🔔', label:'Send Notifications' },
+  ],
+  employer: [
+    { id:'empOverview', icon:'📊', label:'Overview' },
+    { id:'companyProfile', icon:'🏢', label:'Company Profile' },
+    { id:'postJob', icon:'➕', label:'Post a Job' },
+    { id:'myJobs', icon:'💼', label:'My Jobs' },
+    { id:'receivedCVs', icon:'📥', label:'Received CVs' },
+    { id:'empNotifications', icon:'🔔', label:'Notifications' },
+  ],
+  seeker: [
+    { id:'seekOverview', icon:'📊', label:'Overview' },
+    { id:'myProfile', icon:'👤', label:'My Profile' },
+    { id:'uploadCV', icon:'📄', label:'Upload CV' },
+    { id:'browseJobs', icon:'🔍', label:'Browse Jobs' },
+    { id:'myApplications', icon:'📋', label:'My Applications' },
+    { id:'seekNotifications', icon:'🔔', label:'Notifications' },
+  ]
+};
+
+function loadDashboard() {
+  document.getElementById('landing').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  document.getElementById('sidebarRoleBadge').textContent = currentUser.role.toUpperCase();
+  document.getElementById('sidebarName').textContent = currentUser.name;
+  document.getElementById('sidebarEmail').textContent = currentUser.email;
+  const nav = document.getElementById('sidebarNav');
+  const menu = dashMenus[currentUser.role];
+  nav.innerHTML = menu.map(m=>`<div class="nav-item" onclick="loadPage('${m.id}',this)" id="nav_${m.id}"><span class="icon">${m.icon}</span>${m.label}</div>`).join('');
+  loadPage(menu[0].id, nav.querySelector('.nav-item'));
+}
+
+function loadPage(page, el) {
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  else { const n = document.getElementById('nav_'+page); if(n) n.classList.add('active'); }
+  const fns = { overview, cvReview, forward, jobs: adminJobs, seekers, employers, notifications: adminNotifs,
+                 empOverview, companyProfile, postJob, myJobs, receivedCVs, empNotifications,
+                 seekOverview, myProfile, uploadCV, browseJobs, myApplications, seekNotifications };
+  if(fns[page]) fns[page]();
+}
+
+function render(html) { document.getElementById('dashContent').innerHTML = html; }
+
+// ═══════════════════════ ADMIN PAGES ═══════════════════════
+function overview() {
+  const users=DB.users(), jobs=DB.jobs(), apps=DB.applications(), fwds=DB.forwardings();
+  const seekers=users.filter(u=>u.role==='seeker'), emps=users.filter(u=>u.role==='employer');
+  const pending=apps.filter(a=>a.status==='pending');
+  render(`
+    <div class="dash-header"><h1>Admin Overview</h1><p>Platform management — KUDU Talent LTD</p></div>
+    <div class="dash-body">
+      <div class="msg-success" style="margin-bottom:1.5rem;font-size:0.8rem">Platform note: Data is stored locally in this browser until the Supabase backend is connected in Phase 2.</div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num">${seekers.length}</div><div class="stat-label">Job Seekers</div></div>
+        <div class="stat-card"><div class="stat-num">${emps.length}</div><div class="stat-label">Employers</div></div>
+        <div class="stat-card"><div class="stat-num">${jobs.length}</div><div class="stat-label">Active Jobs</div></div>
+        <div class="stat-card"><div class="stat-num">${apps.length}</div><div class="stat-label">Applications</div></div>
+        <div class="stat-card"><div class="stat-num">${pending.length}</div><div class="stat-label">Pending Review</div></div>
+        <div class="stat-card"><div class="stat-num">${fwds.length}</div><div class="stat-label">CVs Forwarded</div></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent Applications</span></div>
+          <div class="card-body" style="padding:0">
+            ${apps.length===0?'<div class="empty-state"><div class="empty-icon">📭</div><p>No applications yet</p></div>':
+            `<table><thead><tr><th>Seeker</th><th>Job</th><th>Date</th><th>Status</th></tr></thead><tbody>
+            ${apps.slice(-5).reverse().map(a=>{
+              const u=DB.users().find(u=>u.id===a.seekerId);
+              const j=DB.jobs().find(j=>j.id===a.jobId);
+              return `<tr><td>${u?.name||'—'}</td><td>${j?.title||'—'}</td><td>${a.date}</td><td><span class="badge badge-${a.status==='pending'?'gold':a.status==='forwarded'?'green':'blue'}">${a.status}</span></td></tr>`;
+            }).join('')}</tbody></table>`}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent Forwardings</span></div>
+          <div class="card-body" style="padding:0">
+            ${fwds.length===0?'<div class="empty-state"><div class="empty-icon">✉️</div><p>No CVs forwarded yet</p></div>':
+            `<table><thead><tr><th>Candidate</th><th>Employer</th><th>Date</th></tr></thead><tbody>
+            ${fwds.slice(-5).reverse().map(f=>{
+              const s=DB.users().find(u=>u.id===f.seekerId);
+              const e=DB.users().find(u=>u.id===f.employerId);
+              return `<tr><td>${s?.name||'—'}</td><td>${e?.company||e?.name||'—'}</td><td>${f.date}</td></tr>`;
+            }).join('')}</tbody></table>`}
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function cvReview() {
+  const users=DB.users(), apps=DB.applications();
+  const seekersWithCV=users.filter(u=>u.role==='seeker'&&u.cvUploaded);
+  render(`
+    <div class="dash-header"><h1>Review CVs</h1><p>Vet candidate profiles and shortlist for employers</p></div>
+    <div class="dash-body">
+      ${seekersWithCV.length===0?`<div class="empty-state" style="padding:4rem"><div class="empty-icon">📭</div><p>No CVs uploaded yet. Job seekers haven't uploaded their CVs.</p></div>`:
+      seekersWithCV.map(s=>{
+        const userApps=apps.filter(a=>a.seekerId===s.id);
+        return `
+        <div class="card" style="margin-bottom:1.25rem">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${s.name}</div>
+              <div style="font-size:0.8rem;color:var(--slate-light)">${s.email} &nbsp;•&nbsp; ${s.location}</div>
+            </div>
+            <span class="badge badge-${s.cvReviewed?'green':'gold'}">${s.cvReviewed?'Reviewed':'Pending Review'}</span>
+          </div>
+          <div class="card-body">
+            <div class="two-col" style="margin-bottom:1rem">
+              <div><strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--slate-light)">CV File</strong><p style="margin-top:0.25rem;font-size:0.875rem">📎 ${s.cvName||'unnamed-cv.pdf'}</p></div>
+              <div><strong style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--slate-light)">Applications</strong><p style="margin-top:0.25rem;font-size:0.875rem">${userApps.length} job(s) applied to</p></div>
+            </div>
+            ${s.cvBio?`<p style="font-size:0.875rem;color:var(--slate-light);margin-bottom:1rem">"${s.cvBio}"</p>`:''}
+            ${s.cvSkills?`<div style="margin-bottom:1rem">${s.cvSkills.split(',').map(sk=>`<span class="tag">${sk.trim()}</span>`).join('')}</div>`:''}
+            ${s.cvExperience?`<p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1rem">Experience: ${s.cvExperience}</p>`:''}
+            <div class="actions-row">
+              <button class="btn btn-gold btn-sm" onclick="markReviewed('${s.id}')">✓ Mark Reviewed</button>
+              <button class="btn btn-green btn-sm" onclick="loadPage('forward',null);setTimeout(()=>preselectSeeker('${s.id}'),100)">Forward CV →</button>
+              <button class="btn btn-ghost btn-sm" onclick="addAdminNote('${s.id}')">Add Note</button>
+            </div>
+            ${s.adminNote?`<div style="margin-top:0.75rem;padding:0.75rem;background:rgba(201,168,76,0.05);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;font-size:0.8rem;color:var(--slate-light)">Note: ${s.adminNote}</div>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `);
+}
+
+function markReviewed(sid) {
+  let users=DB.users(); const i=users.findIndex(u=>u.id===sid);
+  if(i>-1){users[i].cvReviewed=true;DB.saveUsers(users);}
+  addNotif(sid,'Your CV has been reviewed by the KUDU admin team. You will be contacted if selected.');
+  cvReview();
+}
+function addAdminNote(sid) {
+  const note=prompt('Add admin note for this candidate:');
+  if(note){let users=DB.users();const i=users.findIndex(u=>u.id===sid);if(i>-1){users[i].adminNote=note;DB.saveUsers(users);cvReview();}}
+}
+
+function preselectSeeker(sid) {
+  const el=document.getElementById('fw_seeker'); if(el) el.value=sid; populateJobs();
+}
+
+function forward() {
+  const users=DB.users();
+  const seekers=users.filter(u=>u.role==='seeker'&&u.cvUploaded);
+  const emps=users.filter(u=>u.role==='employer');
+  const fwds=DB.forwardings();
+  render(`
+    <div class="dash-header"><h1>Forward CVs to Employers</h1><p>Match the best candidates to open positions</p></div>
+    <div class="dash-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">New Forwarding</span></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Select Candidate</label>
+              <select id="fw_seeker" onchange="populateJobs()">
+                <option value="">— Choose candidate —</option>
+                ${seekers.map(s=>`<option value="${s.id}">${s.name} — ${s.location}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group"><label>Forward to Employer</label>
+              <select id="fw_employer" onchange="populateJobs()">
+                <option value="">— Choose employer —</option>
+                ${emps.map(e=>`<option value="${e.id}">${e.company||e.name} — ${e.location}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>For Job Position</label>
+              <select id="fw_job"><option value="">— Select employer first —</option></select>
+            </div>
+            <div class="form-group"><label>Admin Note to Employer (optional)</label>
+              <input id="fw_note" placeholder="Strong match for your requirements...">
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="doForward()">✉️ Forward CV to Employer</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Forwarding History (${fwds.length})</span></div>
+        <div class="card-body" style="padding:0">
+          ${fwds.length===0?'<div class="empty-state"><p>No CVs forwarded yet.</p></div>':
+          `<table><thead><tr><th>Candidate</th><th>Employer</th><th>Position</th><th>Date</th><th>Note</th></tr></thead><tbody>
+          ${fwds.map(f=>{
+            const s=users.find(u=>u.id===f.seekerId),e=users.find(u=>u.id===f.employerId);
+            const j=DB.jobs().find(j=>j.id===f.jobId);
+            return `<tr><td>${s?.name||'—'}</td><td>${e?.company||e?.name||'—'}</td><td>${j?.title||'—'}</td><td>${f.date}</td><td style="font-size:0.78rem;color:var(--slate-light)">${f.note||'—'}</td></tr>`;
+          }).join('')}</tbody></table>`}
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function populateJobs() {
+  const eid=document.getElementById('fw_employer')?.value;
+  const js=DB.jobs().filter(j=>j.employerId===eid);
+  const sel=document.getElementById('fw_job');
+  if(!sel)return;
+  sel.innerHTML=js.length===0?'<option value="">— No jobs posted —</option>':
+    `<option value="">— Select job —</option>${js.map(j=>`<option value="${j.id}">${j.title}</option>`).join('')}`;
+}
+
+function doForward() {
+  const sid=document.getElementById('fw_seeker')?.value;
+  const eid=document.getElementById('fw_employer')?.value;
+  const jid=document.getElementById('fw_job')?.value;
+  const note=document.getElementById('fw_note')?.value||'';
+  if(!sid||!eid||!jid) return alert('Please select a candidate, employer, and job position.');
+  const fwds=DB.forwardings();
+  if(fwds.find(f=>f.seekerId===sid&&f.employerId===eid&&f.jobId===jid)) return alert('This CV has already been forwarded for this position.');
+  fwds.push({id:uid(),seekerId:sid,employerId:eid,jobId:jid,note,date:now(),status:'forwarded'});
+  DB.saveFwds(fwds);
+  // Update application status
+  let apps=DB.applications();
+  const ai=apps.findIndex(a=>a.seekerId===sid&&a.jobId===jid);
+  if(ai>-1){apps[ai].status='forwarded';DB.saveApps(apps);}
+  addNotif(eid,'A new candidate CV has been forwarded to you. Check your Received CVs section.');
+  addNotif(sid,'Great news! Your CV has been forwarded to an employer by KUDU admin.');
+  forward();
+  alert('✅ CV successfully forwarded!');
+}
+
+function adminJobs() {
+  const jobs=DB.jobs(), users=DB.users();
+  render(`
+    <div class="dash-header"><h1>All Jobs</h1><p>Overview of all posted positions</p></div>
+    <div class="dash-body">
+      ${jobs.length===0?'<div class="empty-state" style="padding:4rem"><div class="empty-icon">💼</div><p>No jobs posted yet.</p></div>':
+      `<table><thead><tr><th>Position</th><th>Employer</th><th>Location</th><th>Type</th><th>Posted</th><th>Status</th><th>Action</th></tr></thead><tbody>
+      ${jobs.map(j=>{
+        const e=users.find(u=>u.id===j.employerId);
+        return `<tr><td><strong>${j.title}</strong></td><td>${e?.company||'—'}</td><td>${j.location}</td><td>${j.type}</td><td>${j.date}</td>
+        <td><span class="badge badge-${j.status==='active'?'green':'grey'}">${j.status||'active'}</span></td>
+        <td><button class="btn btn-ghost btn-sm" onclick="toggleJobStatus('${j.id}')">${j.status==='closed'?'Reopen':'Close'}</button></td></tr>`;
+      }).join('')}</tbody></table>`}
+    </div>
+  `);
+}
+function toggleJobStatus(jid){
+  let jobs=DB.jobs();const i=jobs.findIndex(j=>j.id===jid);
+  if(i>-1){jobs[i].status=jobs[i].status==='closed'?'active':'closed';DB.saveJobs(jobs);}
+  adminJobs();
+}
+
+function seekers() {
+  const users=DB.users().filter(u=>u.role==='seeker');
+  render(`
+    <div class="dash-header"><h1>Job Seekers</h1><p>All registered Kenyan professionals</p></div>
+    <div class="dash-body">
+      ${users.length===0?'<div class="empty-state" style="padding:4rem"><div class="empty-icon">👥</div><p>No job seekers registered.</p></div>':
+      `<table><thead><tr><th>Name</th><th>Email</th><th>Location</th><th>CV</th><th>Reviewed</th><th>Joined</th></tr></thead><tbody>
+      ${users.map(u=>`<tr>
+        <td><strong>${u.name}</strong></td><td>${u.email}</td><td>${u.location||'—'}</td>
+        <td><span class="badge badge-${u.cvUploaded?'green':'gold'}">${u.cvUploaded?'Uploaded':'Pending'}</span></td>
+        <td><span class="badge badge-${u.cvReviewed?'green':'grey'}">${u.cvReviewed?'Yes':'No'}</span></td>
+        <td>${new Date(u.createdAt).toLocaleDateString()}</td>
+      </tr>`).join('')}</tbody></table>`}
+    </div>
+  `);
+}
+
+function employers() {
+  const users=DB.users().filter(u=>u.role==='employer');
+  render(`
+    <div class="dash-header"><h1>Employers</h1><p>All registered German employers</p></div>
+    <div class="dash-body">
+      ${users.length===0?'<div class="empty-state" style="padding:4rem"><div class="empty-icon">🏢</div><p>No employers registered.</p></div>':
+      `<table><thead><tr><th>Company</th><th>Contact</th><th>Email</th><th>Location</th><th>Jobs Posted</th><th>CVs Received</th></tr></thead><tbody>
+      ${users.map(u=>{
+        const jc=DB.jobs().filter(j=>j.employerId===u.id).length;
+        const fwdc=DB.forwardings().filter(f=>f.employerId===u.id).length;
+        return `<tr><td><strong>${u.company||'—'}</strong></td><td>${u.name}</td><td>${u.email}</td><td>${u.location||'—'}</td><td>${jc}</td><td>${fwdc}</td></tr>`;
+      }).join('')}</tbody></table>`}
+    </div>
+  `);
+}
+
+function adminNotifs() {
+  const users=DB.users();
+  render(`
+    <div class="dash-header"><h1>Send Notifications</h1><p>Communicate with seekers and employers</p></div>
+    <div class="dash-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Broadcast Message</span></div>
+        <div class="card-body">
+          <div class="form-group"><label>Send To</label>
+            <select id="notif_target">
+              <option value="all">All Users</option>
+              <option value="seeker">All Job Seekers</option>
+              <option value="employer">All Employers</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Message</label><textarea id="notif_msg" placeholder="Type your message..."></textarea></div>
+          <button class="btn btn-gold" onclick="sendBroadcast()">Send Notification</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+function sendBroadcast() {
+  const target=document.getElementById('notif_target').value;
+  const msg=document.getElementById('notif_msg').value.trim();
+  if(!msg) return alert('Please write a message');
+  const users=DB.users();
+  users.filter(u=>target==='all'?u.role!=='admin':u.role===target).forEach(u=>addNotif(u.id,'[Admin] '+msg));
+  alert('✅ Notification sent!');
+  document.getElementById('notif_msg').value='';
+}
+
+// ═══════════════════════ EMPLOYER PAGES ═══════════════════════
+function empOverview() {
+  const myJobs=DB.jobs().filter(j=>j.employerId===currentUser.id);
+  const fwds=DB.forwardings().filter(f=>f.employerId===currentUser.id);
+  const notifs=DB.notifications().filter(n=>n.userId===currentUser.id);
+  const unread=notifs.filter(n=>!n.read);
+  render(`
+    <div class="dash-header"><h1>Welcome, ${currentUser.company||currentUser.name}</h1><p>Manage your talent pipeline from Germany</p></div>
+    <div class="dash-body">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num">${myJobs.length}</div><div class="stat-label">Jobs Posted</div></div>
+        <div class="stat-card"><div class="stat-num">${myJobs.filter(j=>j.status!=='closed').length}</div><div class="stat-label">Active Jobs</div></div>
+        <div class="stat-card"><div class="stat-num">${fwds.length}</div><div class="stat-label">CVs Received</div></div>
+        <div class="stat-card"><div class="stat-num">${unread.length}</div><div class="stat-label">Unread Notifications</div></div>
+      </div>
+      ${unread.length>0?`<div class="card"><div class="card-header"><span class="card-title">🔔 New Notifications</span></div><div class="card-body">
+      ${unread.map(n=>`<div class="notification">${n.msg}<div class="notif-time">${n.time}</div></div>`).join('')}
+      </div></div>`:''}
+      <div class="card">
+        <div class="card-header"><span class="card-title">Recently Received CVs</span></div>
+        <div class="card-body" style="padding:0">
+          ${fwds.length===0?'<div class="empty-state"><p>No CVs received yet. Post jobs and KUDU admin will forward the best candidates.</p></div>':
+          fwds.slice(-3).reverse().map(f=>{
+            const s=DB.users().find(u=>u.id===f.seekerId);
+            const j=DB.jobs().find(j=>j.id===f.jobId);
+            return `<div style="padding:1rem;border-bottom:1px solid var(--border-light)">
+              <strong>${s?.name||'—'}</strong> <span style="color:var(--slate-light);font-size:0.8rem">— for ${j?.title||'—'}</span>
+              <div style="font-size:0.78rem;color:var(--slate-light);margin-top:0.25rem">Forwarded ${f.date} ${f.note?'• Note: '+f.note:''}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function companyProfile() {
+  const u=currentUser;
+  render(`
+    <div class="dash-header"><h1>Company Profile</h1><p>Your company listing seen by KUDU admin</p></div>
+    <div class="dash-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Edit Company Profile</span></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Company Name</label><input id="cp_company" value="${u.company||''}"></div>
+            <div class="form-group"><label>Contact Person</label><input id="cp_name" value="${u.name||''}"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Industry / Sector</label><input id="cp_industry" value="${u.companyIndustry||''}" placeholder="e.g. Healthcare, Engineering, IT"></div>
+            <div class="form-group"><label>Company Size</label>
+              <select id="cp_size">
+                <option value="">— Select size —</option>
+                ${['1-10','11-50','51-200','201-500','500+'].map(s=>`<option ${u.companySize===s?'selected':''}>${s}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Location (Germany)</label><input id="cp_location" value="${u.location||''}" placeholder="Berlin, Munich..."></div>
+            <div class="form-group"><label>Phone</label><input id="cp_phone" value="${u.phone||''}" placeholder="+49..."></div>
+          </div>
+          <div class="form-group"><label>Company Description</label><textarea id="cp_desc" rows="4" placeholder="Describe your company, culture, and what you offer to international talent...">${u.companyDesc||''}</textarea></div>
+          <button class="btn btn-gold" onclick="saveCompanyProfile()">Save Profile</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+function saveCompanyProfile() {
+  let users=DB.users(); const i=users.findIndex(u=>u.id===currentUser.id);
+  if(i>-1){
+    users[i].company=document.getElementById('cp_company').value;
+    users[i].name=document.getElementById('cp_name').value;
+    users[i].companyIndustry=document.getElementById('cp_industry').value;
+    users[i].companySize=document.getElementById('cp_size').value;
+    users[i].location=document.getElementById('cp_location').value;
+    users[i].phone=document.getElementById('cp_phone').value;
+    users[i].companyDesc=document.getElementById('cp_desc').value;
+    users[i].profileComplete=true;
+    DB.saveUsers(users);
+    currentUser=users[i];
+    document.getElementById('sidebarName').textContent=currentUser.name;
+    alert('✅ Company profile saved!');
+  }
+}
+
+function postJob() {
+  render(`
+    <div class="dash-header"><h1>Post a Job</h1><p>Create a new position for Kenyan candidates</p></div>
+    <div class="dash-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">New Job Listing</span></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Job Title</label><input id="j_title" placeholder="e.g. Registered Nurse, Software Engineer"></div>
+            <div class="form-group"><label>Employment Type</label>
+              <select id="j_type">
+                <option>Full-Time</option><option>Part-Time</option><option>Contract</option><option>Internship</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Location in Germany</label><input id="j_location" placeholder="Berlin, Munich, Hamburg..." value="${currentUser.location||''}"></div>
+            <div class="form-group"><label>Salary Range (€)</label><input id="j_salary" placeholder="e.g. €2,500 – €3,500 / month"></div>
+          </div>
+          <div class="form-group"><label>Job Description</label><textarea id="j_desc" rows="4" placeholder="Describe the role, responsibilities, and work environment..."></textarea></div>
+          <div class="form-group"><label>Required Skills / Qualifications</label><textarea id="j_skills" rows="3" placeholder="e.g. 3+ years nursing, German B2, ICU experience..."></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label>Language Requirements</label><input id="j_lang" placeholder="e.g. German B2, English C1"></div>
+            <div class="form-group"><label>Application Deadline</label><input id="j_deadline" type="date"></div>
+          </div>
+          <button class="btn btn-gold" onclick="submitJob()">📋 Post Job</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+function submitJob() {
+  const title=document.getElementById('j_title').value.trim();
+  const desc=document.getElementById('j_desc').value.trim();
+  if(!title||!desc) return alert('Please fill in job title and description');
+  const jobs=DB.jobs();
+  jobs.push({
+    id:uid(), employerId:currentUser.id,
+    title, type:document.getElementById('j_type').value,
+    location:document.getElementById('j_location').value,
+    salary:document.getElementById('j_salary').value,
+    description:desc, skills:document.getElementById('j_skills').value,
+    language:document.getElementById('j_lang').value,
+    deadline:document.getElementById('j_deadline').value,
+    date:now(), status:'active'
+  });
+  DB.saveJobs(jobs);
+  // Notify admin
+  const admin=DB.users().find(u=>u.role==='admin');
+  if(admin) addNotif(admin.id, `New job posted by ${currentUser.company||currentUser.name}: "${title}"`);
+  alert('✅ Job posted successfully!');
+  loadPage('myJobs', document.getElementById('nav_myJobs'));
+}
+
+function myJobs() {
+  const jobs=DB.jobs().filter(j=>j.employerId===currentUser.id);
+  render(`
+    <div class="dash-header"><h1>My Jobs</h1><p>Your posted positions</p></div>
+    <div class="dash-body">
+      <div class="section-head"><span></span><button class="btn btn-gold btn-sm" onclick="loadPage('postJob',document.getElementById('nav_postJob'))">+ Post New Job</button></div>
+      ${jobs.length===0?'<div class="empty-state" style="padding:4rem"><div class="empty-icon">💼</div><p>No jobs posted yet. Post your first job to start receiving candidates.</p></div>':
+      jobs.map(j=>`
+        <div class="job-card">
+          <div class="job-card-header">
+            <div><div style="font-size:1rem;font-weight:600">${j.title}</div><div style="font-size:0.78rem;color:var(--gold);margin-top:2px">${currentUser.company||'—'} · ${j.location}</div></div>
+            <span class="badge badge-${j.status==='active'?'green':'grey'}">${j.status||'active'}</span>
+          </div>
+          <div class="job-meta">
+            <span>🕐 ${j.type}</span>
+            ${j.salary?`<span>💶 ${j.salary}</span>`:''}
+            ${j.language?`<span>🗣️ ${j.language}</span>`:''}
+            <span>📅 Posted ${j.date}</span>
+            ${j.deadline?`<span>⏰ Deadline: ${j.deadline}</span>`:''}
+          </div>
+          <p style="font-size:0.875rem;color:var(--slate-light);margin:0.5rem 0">${j.description?.slice(0,150)}${j.description?.length>150?'...':''}</p>
+          ${j.skills?`<div style="margin-top:0.5rem">${j.skills.split(',').map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</div>`:''}
+        </div>
+      `).join('')}
+    </div>
+  `);
+}
+
+function receivedCVs() {
+  const fwds=DB.forwardings().filter(f=>f.employerId===currentUser.id);
+  // Mark notifications read
+  let notifs=DB.notifications(); notifs.filter(n=>n.userId===currentUser.id).forEach(n=>n.read=true); DB.saveNotifs(notifs);
+  render(`
+    <div class="dash-header"><h1>Received CVs</h1><p>Candidates forwarded by KUDU admin</p></div>
+    <div class="dash-body">
+      ${fwds.length===0?`<div class="empty-state" style="padding:4rem">
+        <div class="empty-icon">📥</div>
+        <p>No CVs received yet. KUDU admin will forward the best-matched candidates for your open positions.</p>
+        <p style="margin-top:0.75rem;font-size:0.8rem">Make sure you have active job listings posted.</p>
+      </div>`:
+      fwds.map(f=>{
+        const s=DB.users().find(u=>u.id===f.seekerId);
+        const j=DB.jobs().find(jb=>jb.id===f.jobId);
+        return `
+        <div class="detail-panel" style="margin-bottom:1.25rem">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem">
+            <div>
+              <h2 style="font-size:1.25rem">${s?.name||'Unknown Candidate'}</h2>
+              <div style="font-size:0.8rem;color:var(--gold)">Forwarded for: ${j?.title||'Unknown position'}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:0.78rem;color:var(--slate-light)">Forwarded ${f.date}</div>
+              <span class="badge badge-green" style="margin-top:0.25rem">KUDU Verified</span>
+            </div>
+          </div>
+          <div class="info-grid">
+            <div class="info-item"><label>Location</label><span>${s?.location||'—'}</span></div>
+            <div class="info-item"><label>CV File</label><span>📎 ${s?.cvName||'cv-document.pdf'}</span></div>
+            <div class="info-item"><label>Phone</label><span>${s?.phone||'Available on request'}</span></div>
+            <div class="info-item"><label>Experience</label><span>${s?.cvExperience||'—'}</span></div>
+          </div>
+          ${s?.cvBio?`<div style="margin:0.75rem 0;padding:0.75rem;background:rgba(201,168,76,0.05);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;font-size:0.875rem">"${s.cvBio}"</div>`:''}
+          ${s?.cvSkills?`<div style="margin-bottom:0.75rem">${s.cvSkills.split(',').map(sk=>`<span class="tag">${sk.trim()}</span>`).join('')}</div>`:''}
+          ${f.note?`<div style="font-size:0.8rem;color:var(--slate-light);margin-bottom:0.75rem">Admin note: ${f.note}</div>`:''}
+          <div class="actions-row">
+            <button class="btn btn-green btn-sm" onclick="shortlistCandidate('${f.id}')" ${f.status==='shortlisted'?'disabled':''}>${f.status==='shortlisted'?'✓ Shortlisted':'✓ Shortlist Candidate'}</button>
+            <button class="btn btn-ghost btn-sm" onclick="replyAdmin('${f.id}')">💬 Message KUDU Admin</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `);
+}
+function shortlistCandidate(fid) {
+  let fwds = DB.forwardings();
+  const i = fwds.findIndex(f => f.id === fid);
+  if (i === -1) return;
+  if (fwds[i].status === 'shortlisted') return;
+  fwds[i].status = 'shortlisted';
+  DB.saveFwds(fwds);
+  const s = DB.users().find(u => u.id === fwds[i].seekerId);
+  const admin = DB.users().find(u => u.role === 'admin');
+  if (admin) addNotif(admin.id, `[Employer: ${currentUser.company||currentUser.name}] Shortlisted ${s?.name||'candidate'}`);
+  if (s) addNotif(s.id, 'Great news! An employer has shortlisted you for a position.');
+  receivedCVs();
+  alert('✅ Candidate shortlisted!');
+}
+function replyAdmin(fid){
+  const msg=prompt('Message to KUDU Admin about this candidate:');
+  if(msg){
+    const admin=DB.users().find(u=>u.role==='admin');
+    if(admin) addNotif(admin.id,`[Employer: ${currentUser.company||currentUser.name}] ${msg}`);
+    alert('✅ Message sent to KUDU Admin.');
+  }
+}
+
+function empNotifications() {
+  const notifs=DB.notifications().filter(n=>n.userId===currentUser.id);
+  let n2=DB.notifications(); n2.filter(n=>n.userId===currentUser.id).forEach(n=>n.read=true); DB.saveNotifs(n2);
+  render(`
+    <div class="dash-header"><h1>Notifications</h1><p>Updates from KUDU admin team</p></div>
+    <div class="dash-body">
+      ${notifs.length===0?'<div class="empty-state" style="padding:4rem"><div class="empty-icon">🔔</div><p>No notifications yet.</p></div>':
+      notifs.map(n=>`<div class="notification">${n.msg}<div class="notif-time">${n.time}</div></div>`).join('')}
+    </div>
+  `);
+}
+
+// ═══════════════════════ JOB SEEKER PAGES ═══════════════════════
+function seekOverview() {
+  const myApps=DB.applications().filter(a=>a.seekerId===currentUser.id);
+  const fwds=DB.forwardings().filter(f=>f.seekerId===currentUser.id);
+  const notifs=DB.notifications().filter(n=>n.userId===currentUser.id&&!n.read);
+  render(`
+    <div class="dash-header"><h1>Welcome, ${currentUser.name}</h1><p>Your KUDU Talent LTD dashboard</p></div>
+    <div class="dash-body">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num">${myApps.length}</div><div class="stat-label">Jobs Applied</div></div>
+        <div class="stat-card"><div class="stat-num">${fwds.length}</div><div class="stat-label">CV Forwarded</div></div>
+        <div class="stat-card"><div class="stat-num">${currentUser.cvUploaded?'✓':'0'}</div><div class="stat-label">CV Status</div></div>
+        <div class="stat-card"><div class="stat-num">${notifs.length}</div><div class="stat-label">Notifications</div></div>
+      </div>
+      ${!currentUser.cvUploaded?`<div style="background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div><strong>Upload your CV to get started</strong><p style="font-size:0.875rem;color:var(--slate-light);margin-top:0.25rem">Your CV is required before KUDU admin can forward you to employers.</p></div>
+        <button class="btn btn-gold" onclick="loadPage('uploadCV',document.getElementById('nav_uploadCV'))">Upload CV →</button>
+      </div>`:''}
+      ${notifs.length>0?`<div class="card"><div class="card-header"><span class="card-title">🔔 New Updates</span></div><div class="card-body">
+      ${notifs.map(n=>`<div class="notification">${n.msg}<div class="notif-time">${n.time}</div></div>`).join('')}
+      </div></div>`:''}
+      <div class="card">
+        <div class="card-header"><span class="card-title">Your Application Progress</span></div>
+        <div class="card-body" style="padding:0">
+          ${myApps.length===0?'<div class="empty-state"><p>You haven\'t applied to any jobs yet. Browse open positions to get started.</p></div>':
+          `<table><thead><tr><th>Position</th><th>Applied</th><th>Status</th></tr></thead><tbody>
+          ${myApps.map(a=>{
+            const j=DB.jobs().find(j=>j.id===a.jobId);
+            return `<tr><td>${j?.title||'—'}</td><td>${a.date}</td>
+            <td><span class="badge badge-${a.status==='pending'?'gold':a.status==='forwarded'?'green':'blue'}">${
+              a.status==='pending'?'Under Review':a.status==='forwarded'?'CV Forwarded':'Applied'
+            }</span></td></tr>`;
+          }).join('')}</tbody></table>`}
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+function myProfile() {
+  const u=currentUser;
+  render(`
+    <div class="dash-header"><h1>My Profile</h1><p>Your professional profile visible to KUDU admin</p></div>
+    <div class="dash-body">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Personal Information</span></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Full Name</label><input id="sp_name" value="${u.name||''}"></div>
+            <div class="form-group"><label>Phone Number</label><input id="sp_phone" value="${u.phone||''}" placeholder="+254 7XX XXX XXX"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Email</label><input id="sp_email" value="${u.email||''}" type="email"></div>
+            <div class="form-group"><label>Current Location</label><input id="sp_location" value="${u.location||''}" placeholder="Nairobi, Kenya"></div>
+          </div>
+          <div class="form-group"><label>Professional Bio</label><textarea id="sp_bio" rows="3" placeholder="Brief summary of your professional background and goals...">${u.cvBio||''}</textarea></div>
+          <div class="form-group"><label>Skills (comma-separated)</label><input id="sp_skills" value="${u.cvSkills||''}" placeholder="e.g. Nursing, Patient Care, German B2, ICU..."></div>
+          <div class="form-group"><label>Years of Experience & Background</label><input id="sp_exp" value="${u.cvExperience||''}" placeholder="e.g. 5 years as Registered Nurse, Kenyatta National Hospital"></div>
+          <button class="btn btn-gold" onclick="saveProfile()">Save Profile</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+function saveProfile() {
+  let users=DB.users(); const i=users.findIndex(u=>u.id===currentUser.id);
+  if(i>-1){
+    users[i].name=document.getElementById('sp_name').value;
+    users[i].phone=document.getElementById('sp_phone').value;
+    users[i].email=document.getElementById('sp_email').value;
+    users[i].location=document.getElementById('sp_location').value;
+    users[i].cvBio=document.getElementById('sp_bio').value;
+    users[i].cvSkills=document.getElementById('sp_skills').value;
+    users[i].cvExperience=document.getElementById('sp_exp').value;
+    DB.saveUsers(users); currentUser=users[i];
+    document.getElementById('sidebarName').textContent=currentUser.name;
+    alert('✅ Profile saved!');
+  }
+}
+
+function uploadCV() {
+  const u=currentUser;
+  render(`
+    <div class="dash-header"><h1>Upload CV</h1><p>Your CV is reviewed by KUDU admin before being forwarded</p></div>
+    <div class="dash-body">
+      ${u.cvUploaded?`<div class="msg-success">✓ CV on file: ${u.cvName}. Reviewed: ${u.cvReviewed?'Yes ✓':'Pending admin review'}.</div>`:''}
+      <div class="card">
+        <div class="card-header"><span class="card-title">CV Upload</span></div>
+        <div class="card-body">
+          <div class="file-upload-area" onclick="document.getElementById('cvFile').click()">
+            <div style="font-size:2.5rem">📄</div>
+            <p><strong>Click to upload your CV</strong></p>
+            <p style="font-size:0.78rem">PDF, DOC, DOCX — Max 5MB</p>
+            <input type="file" id="cvFile" style="display:none" accept=".pdf,.doc,.docx" onchange="handleCVUpload(this)">
+          </div>
+          ${u.cvUploaded?`<div style="margin-top:1rem;display:flex;align-items:center;gap:0.75rem;padding:0.75rem;background:rgba(45,106,79,0.1);border-radius:6px">
+            <span style="font-size:1.5rem">📎</span>
+            <div><div style="font-size:0.875rem;font-weight:500">${u.cvName}</div><div style="font-size:0.78rem;color:var(--slate-light)">Uploaded successfully</div></div>
+          </div>`:''}
+          <hr class="divider">
+          <p style="font-size:0.8rem;color:var(--slate-light);margin-bottom:1rem">Also fill in your profile details below to help admin match you with the right employers:</p>
+          <div class="form-group"><label>Professional Bio</label><textarea id="cv_bio" rows="3" placeholder="Your professional summary...">${u.cvBio||''}</textarea></div>
+          <div class="form-group"><label>Key Skills</label><input id="cv_skills" value="${u.cvSkills||''}" placeholder="Nursing, Patient Care, German B1..."></div>
+          <div class="form-group"><label>Experience Summary</label><input id="cv_exp" value="${u.cvExperience||''}" placeholder="5 years, KNH, ICU dept..."></div>
+          <button class="btn btn-gold" onclick="saveCVDetails()">Save Details</button>
+        </div>
+      </div>
+    </div>
+  `);
+}
+function handleCVUpload(input) {
+  if(!input.files[0]) return;
+  const fname=input.files[0].name;
+  let users=DB.users(); const i=users.findIndex(u=>u.id===currentUser.id);
+  if(i>-1){users[i].cvUploaded=true;users[i].cvName=fname;users[i].cvReviewed=false;DB.saveUsers(users);currentUser=users[i];}
+  const admin=DB.users().find(u=>u.role==='admin');
+  if(admin) addNotif(admin.id,`New CV uploaded by ${currentUser.name}: ${fname}`);
+  uploadCV();
+}
+function saveCVDetails() {
+  let users=DB.users(); const i=users.findIndex(u=>u.id===currentUser.id);
+  if(i>-1){
+    users[i].cvBio=document.getElementById('cv_bio').value;
+    users[i].cvSkills=document.getElementById('cv_skills').value;
+    users[i].cvExperience=document.getElementById('cv_exp').value;
+    DB.saveUsers(users); currentUser=users[i];
+    alert('✅ CV details saved!');
+  }
+}
+
+function browseJobs() {
+  const jobs=DB.jobs().filter(j=>j.status!=='closed');
+  const myApps=DB.applications().filter(a=>a.seekerId===currentUser.id);
+  render(`
+    <div class="dash-header"><h1>Browse Jobs</h1><p>Open positions in Germany — curated by KUDU admin</p></div>
+    <div class="dash-body">
+      ${!currentUser.cvUploaded?`<div style="background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:8px;padding:1rem 1.5rem;margin-bottom:1.5rem;font-size:0.875rem">
+        ⚠️ <strong>Upload your CV first</strong> — you need a CV on file before applying to jobs. <a onclick="loadPage('uploadCV',null)" style="color:var(--gold);cursor:pointer">Upload now →</a>
+      </div>`:''}
+      ${jobs.length===0?'<div class="empty-state" style="padding:4rem"><div class="empty-icon">🔍</div><p>No open positions right now. Check back soon.</p></div>':
+      jobs.map(j=>{
+        const applied=myApps.find(a=>a.jobId===j.id);
+        const emp=DB.users().find(u=>u.id===j.employerId);
+        return `
+        <div class="job-card">
+          <div class="job-card-header">
+            <div>
+              <div style="font-size:1.05rem;font-weight:600">${j.title}</div>
+              <div style="font-size:0.8rem;color:var(--gold);margin-top:2px">${emp?.company||'German Employer'} · ${j.location}</div>
+            </div>
+            ${applied?`<span class="badge badge-green">Applied ✓</span>`:
+            currentUser.cvUploaded?`<button class="btn btn-gold btn-sm" onclick="applyJob('${j.id}')">Apply Now</button>`:
+            `<button class="btn btn-ghost btn-sm" disabled title="Upload CV first">Upload CV First</button>`}
+          </div>
+          <div class="job-meta">
+            <span>🕐 ${j.type}</span>
+            ${j.salary?`<span>💶 ${j.salary}</span>`:''}
+            ${j.language?`<span>🗣️ ${j.language}</span>`:''}
+            ${j.deadline?`<span>⏰ Deadline: ${j.deadline}</span>`:''}
+          </div>
+          <p style="font-size:0.875rem;color:var(--slate-light);margin:0.5rem 0;line-height:1.6">${j.description?.slice(0,200)}${j.description?.length>200?'...':''}</p>
+          ${j.skills?`<div style="margin-top:0.5rem">${j.skills.split(',').map(s=>`<span class="tag">${s.trim()}</span>`).join('')}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+  `);
+}
+function applyJob(jid) {
+  if(!currentUser.cvUploaded) return alert('Please upload your CV first.');
+  const apps=DB.applications();
+  if(apps.find(a=>a.seekerId===currentUser.id&&a.jobId===jid)) return alert('You have already applied for this position.');
+  apps.push({id:uid(),seekerId:currentUser.id,jobId:jid,date:now(),status:'pending'});
+  DB.saveApps(apps);
+  const j=DB.jobs().find(j=>j.id===jid);
+  const admin=DB.users().find(u=>u.role==='admin');
+  if(admin) addNotif(admin.id,`New application: ${currentUser.name} applied for "${j?.title}"`);
+  addNotif(currentUser.id,`Application submitted for "${j?.title}". KUDU admin will review your CV and notify you.`);
+  browseJobs();
+  alert('✅ Application submitted! KUDU admin will review your CV.');
+}
+
+function myApplications() {
+  const apps=DB.applications().filter(a=>a.seekerId===currentUser.id);
+  render(`
+    <div class="dash-header"><h1>My Applications</h1><p>Track where you've applied</p></div>
+    <div class="dash-body">
+      ${apps.length===0?'<div class="empty-state" style="padding:4rem"><div class="empty-icon">📋</div><p>No applications yet. Browse jobs to get started.</p></div>':
+      apps.map(a=>{
+        const j=DB.jobs().find(j=>j.id===a.jobId);
+        const fwded=DB.forwardings().find(f=>f.seekerId===currentUser.id&&f.jobId===a.jobId);
+        return `
+        <div class="job-card">
+          <div class="job-card-header">
+            <div>
+              <div style="font-size:1rem;font-weight:600">${j?.title||'Position'}</div>
+              <div style="font-size:0.78rem;color:var(--slate-light)">${j?.location||'Germany'} · Applied ${a.date}</div>
+            </div>
+            <span class="badge badge-${a.status==='pending'?'gold':a.status==='forwarded'?'green':'blue'}">${
+              a.status==='pending'?'Under Review':a.status==='forwarded'?'CV Forwarded ✓':'Applied'
+            }</span>
+          </div>
+          <div class="progress-bar" style="margin-top:0.75rem">
+            <div class="progress-fill" style="width:${a.status==='pending'?'40':a.status==='forwarded'?'100':'60'}%"></div>
+          </div>
+          <div style="font-size:0.75rem;color:var(--slate-light);margin-top:0.4rem">
+            ${a.status==='pending'?'KUDU admin is reviewing your CV':a.status==='forwarded'?'Your CV has been forwarded to the employer':'Application received'}
+          </div>
+          ${fwded?.note?`<div style="margin-top:0.5rem;font-size:0.78rem;color:var(--gold)">Admin note: ${fwded.note}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+  `);
+}
+
+function seekNotifications() {
+  const notifs=DB.notifications().filter(n=>n.userId===currentUser.id);
+  let n2=DB.notifications(); n2.filter(n=>n.userId===currentUser.id).forEach(n=>n.read=true); DB.saveNotifs(n2);
+  render(`
+    <div class="dash-header"><h1>Notifications</h1><p>Updates from KUDU admin team</p></div>
+    <div class="dash-body">
+      ${notifs.length===0?'<div class="empty-state" style="padding:4rem"><div class="empty-icon">🔔</div><p>No notifications yet.</p></div>':
+      notifs.map(n=>`<div class="notification">${n.msg}<div class="notif-time">${n.time}</div></div>`).join('')}
+    </div>
+  `);
+}
+
+function openLegal(type) {
+  const content = {
+    privacy: `<h2>Privacy Policy</h2><p style="font-size:0.875rem;color:var(--slate-light);line-height:1.7;margin-top:1rem">KUDU Talent LTD collects profile and CV information to match Kenyan professionals with German employers. In this release, data is stored locally in your browser. A server-backed version with full data protection will follow in Phase 2.</p><p style="font-size:0.875rem;color:var(--slate-light);line-height:1.7;margin-top:1rem">Contact: info@kudutalent.com</p>`,
+    terms: `<h2>Terms of Use</h2><p style="font-size:0.875rem;color:var(--slate-light);line-height:1.7;margin-top:1rem">By using KUDU Talent LTD you agree to provide accurate information. Employers and job seekers use the platform for legitimate recruitment purposes only. KUDU admins vet candidates before forwarding CVs to employers.</p><p style="font-size:0.875rem;color:var(--slate-light);line-height:1.7;margin-top:1rem">This Phase 1 release stores data per browser. Do not rely on it as a permanent record until the Supabase backend is live.</p>`
+  };
+  document.getElementById('legalContent').innerHTML = content[type] || '';
+  document.getElementById('legalModal').style.display = 'flex';
+}
+function closeLegal() { document.getElementById('legalModal').style.display = 'none'; }
+
+// Init register forms on modal render
+const origOpenAuth = openAuth;
+window.openAuth = function(mode, role='') {
+  origOpenAuth(mode, role);
+  if(mode==='register' && role!=='admin') setTimeout(()=>switchRegTab(role==='employer'?'employer':'seeker',
+    role==='employer'?document.querySelectorAll('.form-tab')[1]:document.querySelectorAll('.form-tab')[0]
+  ), 50);
+};
+
+// Close modals on backdrop click
+document.getElementById('authModal').addEventListener('click', function(e) {
+  if(e.target===this) closeAuth();
+});
+document.getElementById('legalModal').addEventListener('click', function(e) {
+  if(e.target===this) closeLegal();
+});
+
+(function restoreSession() {
+  const sid = sessionStorage.getItem('kudu_session');
+  if (!sid) return;
+  const user = DB.users().find(u => u.id === sid);
+  if (!user) { sessionStorage.removeItem('kudu_session'); return; }
+  currentUser = user;
+  loadDashboard();
+})();
+</script>
+</body>
+</html>
